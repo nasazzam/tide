@@ -4,5 +4,6 @@
 *.swo
 .idea/
 .vscode/
+.pi/
 .env
 !/assets/.gitkeep
