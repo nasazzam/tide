@@ -7,10 +7,10 @@ class Tide < Formula
   on_macos do
     if Hardware::CPU.arm?
       url "https://github.com/nasazzam/tide/releases/download/v0.3.0/tide-v0.3.0-aarch64-apple-darwin.tar.gz"
-      sha256 "1087e4f88a54d321a50599eafe7c0b425160e98a8596835072a9a1605bfd5571"
+      sha256 "b78e157b41ecf174647457b823c591b67cfd3e89ed9cdba49651656bddb4dacf"
     else
       url "https://github.com/nasazzam/tide/releases/download/v0.3.0/tide-v0.3.0-x86_64-apple-darwin.tar.gz"
-      sha256 "cd76d0df9c66a6dec075c353203a8972081bef0594b3bf729bbba744b161b87e"
+      sha256 "53963467d9b6752e6f35e024e370eb33c39628681d5c8bb9b296b6ad85230b8c"
     end
   end
 
