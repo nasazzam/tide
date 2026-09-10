@@ -1,6 +1,6 @@
 # Maintainer: nasazzam
 pkgname=tide-terminal-ide
-pkgver=0.3.0
+pkgver=0.4.0
 pkgrel=1
 pkgdesc='A focused terminal IDE for code, shells, and AI agents'
 arch=('x86_64')
@@ -16,7 +16,7 @@ optdepends=(
   'ffmpegthumbnailer: video previews'
 )
 source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz")
-sha256sums=('47362f0e80290f80f3f1ebe38a35984a071cf38037fa0ea26014077f89211507')
+sha256sums=('SKIP')
 
 prepare() {
   cd "tide-$pkgver"

@@ -517,6 +517,7 @@ struct App {
     last_tree_refresh: Instant,
     selected: Option<PathBuf>,
     show_hidden: bool,
+    explorer_visible: bool,
     explorer_scroll_x: usize,
     tabs: Vec<Editor>,
     active: usize,
@@ -578,12 +579,13 @@ impl App {
             last_tree_refresh: Instant::now(),
             selected: rows.first().map(|r| r.path.clone()),
             show_hidden: config.editor.show_hidden,
+            explorer_visible: true,
             explorer_scroll_x: 0,
             tabs: Vec::new(),
             active: 0,
             focus: Focus::Explorer,
             message: format!(
-                "Mouse enabled · Ctrl+E switch · Ctrl+D diff · Ctrl+S save · Ctrl+Q quit{lsp_message}"
+                "Mouse · F6–F9 views · Ctrl+E switch · Ctrl+D diff · Ctrl+S save · Ctrl+Q quit{lsp_message}"
             ),
             quit: false,
             last_watch: Instant::now(),
@@ -1635,6 +1637,23 @@ fn handle_key(app: &mut App, key: KeyEvent) {
         app.message = "Explorer, Git status, and diff summary refreshed".into();
         return;
     }
+    if key.code == KeyCode::F(6) {
+        app.explorer_visible = !app.explorer_visible;
+        if !app.explorer_visible && app.focus == Focus::Explorer {
+            app.focus = Focus::Editor;
+        }
+        app.message = if app.explorer_visible {
+            "Explorer shown"
+        } else {
+            "Explorer hidden · F6 restores it"
+        }
+        .into();
+        return;
+    }
+    if matches!(key.code, KeyCode::F(7..=9)) && env::var_os("TMUX").is_none() {
+        app.message = "F7–F9 pane focus requires the full tmux workspace".into();
+        return;
+    }
 
     match app.focus {
         Focus::Explorer => match key.code {
@@ -1717,15 +1736,20 @@ fn handle_mouse(app: &mut App, mouse: MouseEvent, width: u16, height: u16) {
         .direction(Direction::Vertical)
         .constraints([Constraint::Min(3), Constraint::Length(1)])
         .split(Rect::new(0, 0, width, height));
-    let main = Layout::default()
-        .direction(Direction::Horizontal)
-        .constraints([
+    let pane_constraints = if app.explorer_visible {
+        [
             Constraint::Percentage(app.explorer_width),
             Constraint::Percentage(100 - app.explorer_width),
-        ])
+        ]
+    } else {
+        [Constraint::Length(0), Constraint::Min(1)]
+    };
+    let main = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints(pane_constraints)
         .split(outer[0]);
 
-    if contains(main[0], mouse.column, mouse.row) {
+    if app.explorer_visible && contains(main[0], mouse.column, mouse.row) {
         match mouse.kind {
             MouseEventKind::ScrollLeft => {
                 app.explorer_scroll_x = app.explorer_scroll_x.saturating_sub(4);
@@ -1864,15 +1888,22 @@ fn draw(app: &mut App, frame: &mut Frame) {
         .direction(Direction::Vertical)
         .constraints([Constraint::Min(3), Constraint::Length(1)])
         .split(frame.area());
-    let main = Layout::default()
-        .direction(Direction::Horizontal)
-        .constraints([
+    let pane_constraints = if app.explorer_visible {
+        [
             Constraint::Percentage(app.explorer_width),
             Constraint::Percentage(100 - app.explorer_width),
-        ])
+        ]
+    } else {
+        [Constraint::Length(0), Constraint::Min(1)]
+    };
+    let main = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints(pane_constraints)
         .split(outer[0]);
 
-    draw_explorer(app, frame, main[0]);
+    if app.explorer_visible {
+        draw_explorer(app, frame, main[0]);
+    }
     draw_editor(app, frame, main[1]);
 
     let focus = if app.focus == Focus::Explorer {

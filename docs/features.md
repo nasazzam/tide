@@ -38,6 +38,20 @@ arguments and session flags are preserved exactly.
 Workspace layouts and pane sizes can be selected through command-line options
 or [project configuration](../README.md#project-configuration).
 
+### Fast workspace toggles
+
+TIDE reserves four adjacent function keys for distraction-free navigation:
+
+- <kbd>F6</kbd> shows or hides the Explorer sidebar.
+- <kbd>F7</kbd> focuses and expands the Editor pane.
+- <kbd>F8</kbd> focuses and expands the current or first Agent pane.
+- <kbd>F9</kbd> focuses and expands the project Terminal pane.
+
+Press <kbd>F7</kbd>, <kbd>F8</kbd>, or <kbd>F9</kbd> again to restore the complete
+workspace. Switching directly from one focused pane to another also works. The
+bindings are conditional: outside a TIDE workspace window, tmux passes these
+function keys through normally.
+
 ## Quick Open and project search
 
 Press <kbd>Ctrl</kbd>+<kbd>P</kbd> and type part of a path for fuzzy filename

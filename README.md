@@ -321,6 +321,10 @@ Detailed feature documentation is available in the
 | <kbd>Alt</kbd>+<kbd>1…9</kbd> | Switch tabs |
 | <kbd>Ctrl</kbd>+<kbd>Space</kbd> | Request LSP completion |
 | <kbd>F5</kbd> | Refresh project and Git state |
+| <kbd>F6</kbd> | Show / hide Explorer |
+| <kbd>F7</kbd> | Toggle focused Editor view |
+| <kbd>F8</kbd> | Toggle focused Agent view |
+| <kbd>F9</kbd> | Toggle focused Terminal view |
 
 ### Editor and Explorer
 

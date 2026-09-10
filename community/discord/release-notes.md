@@ -1,20 +1,20 @@
-# Copy-ready v0.3.0 release post
+# Copy-ready v0.4.0 release post
 
-> **TIDE v0.3.0 — live agent diff review**
+> **TIDE v0.4.0 — instant workspace focus**
 >
-> TIDE now puts a live **Δ DIFF** control directly in the editor header. It
-> continuously shows changed files, hunks, additions, and deletions. Click it or
-> press `Ctrl+D` to review the current changeset with Hunk in watch mode.
+> Move between focused workspace views using four adjacent keys:
 >
-> The review follows changes while your coding agents work and supports
-> multi-file navigation, split or unified diffs, and inline agent annotations.
-> Inside a TIDE workspace it opens in a dedicated tmux window; editor-only mode
-> runs it in the current terminal and restores TIDE afterward.
+> • `F6` — show or hide Explorer
+> • `F7` — toggle Editor focus
+> • `F8` — toggle Agent focus
+> • `F9` — toggle Terminal focus
 >
-> ```bash
-> tide pi -c :: claude --continue
-> ```
+> Press `F7`, `F8`, or `F9` again to restore the complete workspace, or switch
+> directly between focused panes. The bindings only activate in TIDE workspace
+> windows and pass through normally elsewhere.
 >
-> Release: <https://github.com/nasazzam/tide/releases/tag/v0.3.0>
+> TIDE also includes the new live **Δ DIFF** Hunk review from v0.3.0.
+>
+> Release: <https://github.com/nasazzam/tide/releases/tag/v0.4.0>
 
 Attach: `assets/tide-workspace.png`

@@ -2,7 +2,7 @@
 # TIDE workspace launcher for Linux, macOS, BSD, and Windows through WSL.
 set -euo pipefail
 
-readonly TIDE_VERSION="0.3.0"
+readonly TIDE_VERSION="0.4.0"
 
 usage() {
   cat <<'EOF'
@@ -50,6 +50,37 @@ command_string() {
   printf -v rendered '%q ' "$@"
   printf '%s' "${rendered% }"
 }
+
+toggle_workspace_pane() {
+  local role=${1:-} source=${2:-${TMUX_PANE:-}} option target current current_role zoomed
+  command -v tmux >/dev/null 2>&1 || fail "tmux is required"
+  [[ -n $source ]] || fail "pane toggle must run inside tmux"
+  case "$role" in
+    editor) option='#{@tide_editor_pane}' ;;
+    agent) option='#{@tide_agent_pane}' ;;
+    terminal) option='#{@tide_terminal_pane}' ;;
+    *) fail "unknown pane role: $role" ;;
+  esac
+  target=$(tmux display-message -p -t "$source" "$option")
+  [[ -n $target ]] || fail "this is not a TIDE workspace window"
+  current=$(tmux display-message -p -t "$source" '#{pane_id}')
+  current_role=$(tmux display-message -p -t "$source" '#{@tide_role}')
+  if [[ $role == agent && $current_role == agent ]]; then
+    target=$current
+  fi
+  zoomed=$(tmux display-message -p -t "$source" '#{window_zoomed_flag}')
+  if [[ $zoomed == 1 ]]; then
+    tmux resize-pane -Z -t "$current"
+    [[ $current == "$target" ]] && return 0
+  fi
+  tmux select-pane -t "$target"
+  tmux resize-pane -Z -t "$target"
+}
+
+if [[ ${1:-} == --_toggle-pane ]]; then
+  toggle_workspace_pane "${2:-}" "${3:-}"
+  exit 0
+fi
 
 # Read a scalar from a small TOML section without evaluating project content.
 toml_scalar() {
@@ -247,6 +278,12 @@ case "$layout" in
     agent_pane=$(tmux split-window -v -p "$agent_size" -t "$workspace" -c "$project" -P -F '#{pane_id}')
     ;;
 esac
+# Label panes and expose their roles to TIDE's conditional function-key bindings.
+tmux set-option -p -t "$workspace" @tide_role editor
+tmux set-option -p -t "$shell_pane" @tide_role terminal
+tmux set-option -p -t "$agent_pane" @tide_role agent
+primary_agent_pane=$agent_pane
+
 # Keep the project shell idle and ready for input.
 tmux select-pane -t "$shell_pane"
 
@@ -255,10 +292,25 @@ if (( ${#agents[@]} )); then
   tmux send-keys -t "$agent_pane" C-m
   for (( index=1; index<${#agents[@]}; index++ )); do
     agent_pane=$(tmux split-window -v -t "$agent_pane" -c "$project" -P -F '#{pane_id}')
+    tmux set-option -p -t "$agent_pane" @tide_role agent
     tmux send-keys -t "$agent_pane" -l "${agents[index]}"
     tmux send-keys -t "$agent_pane" C-m
   done
 fi
+
+tmux set-option -w -t "$workspace" @tide_editor_pane "$workspace"
+tmux set-option -w -t "$workspace" @tide_agent_pane "$primary_agent_pane"
+tmux set-option -w -t "$workspace" @tide_terminal_pane "$shell_pane"
+
+# These bindings only act in a TIDE window; elsewhere they pass the function key through.
+tmux bind-key -n F6 if-shell -F '#{!=:#{@tide_editor_pane},}' \
+  'send-keys -t "#{@tide_editor_pane}" F6' 'send-keys F6'
+tmux bind-key -n F7 if-shell -F '#{!=:#{@tide_editor_pane},}' \
+  'run-shell "tide --_toggle-pane editor #{pane_id}"' 'send-keys F7'
+tmux bind-key -n F8 if-shell -F '#{!=:#{@tide_agent_pane},}' \
+  'run-shell "tide --_toggle-pane agent #{pane_id}"' 'send-keys F8'
+tmux bind-key -n F9 if-shell -F '#{!=:#{@tide_terminal_pane},}' \
+  'run-shell "tide --_toggle-pane terminal #{pane_id}"' 'send-keys F9'
 
 editor_command=$(command_string env "TIDE_IMAGE_PROTOCOL=$protocol" tide-editor "$project")
 tmux send-keys -t "$workspace" -l "$editor_command"

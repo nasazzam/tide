@@ -5,6 +5,12 @@ All notable changes to TIDE will be documented here. This project follows
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-09-10
+
+### Added
+
+- F6–F9 workspace toggles for Explorer, Editor, Agent, and Terminal views.
+
 ## [0.3.0] - 2026-09-10
 
 ### Added
@@ -32,6 +38,7 @@ All notable changes to TIDE will be documented here. This project follows
 - Linux, macOS, Windows, WSL, Arch, Omarchy, Homebrew, and Winget packaging.
 - Checksum-verifying release installer and cross-platform CI.
 
-[Unreleased]: https://github.com/nasazzam/tide/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/nasazzam/tide/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/nasazzam/tide/releases/tag/v0.4.0
 [0.3.0]: https://github.com/nasazzam/tide/releases/tag/v0.3.0
 [0.2.0]: https://github.com/nasazzam/tide/releases/tag/v0.2.0
