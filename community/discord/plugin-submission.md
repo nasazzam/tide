@@ -4,7 +4,7 @@
 - **Plugin ID:** `org.tide.launcher`
 - **Version:** `0.2.0`
 - **Kind:** `bar-widget`
-- **Author:** TIDE Contributors
+- **Author:** Nas Azzam
 - **License:** MIT
 - **Repository:** <https://github.com/nasazzam/tide>
 - **Manifest:** <https://github.com/nasazzam/tide/blob/main/manifest.json>
