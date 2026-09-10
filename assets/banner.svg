@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="420" viewBox="0 0 1200 420" role="img" aria-label="TIDE Terminal IDE">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#07111f"/>
+      <stop offset="0.55" stop-color="#0b1f33"/>
+      <stop offset="1" stop-color="#10283b"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop stop-color="#4fd1c5"/><stop offset="1" stop-color="#60a5fa"/>
+    </linearGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="22"/></filter>
+  </defs>
+  <rect width="1200" height="420" rx="28" fill="url(#bg)"/>
+  <circle cx="1020" cy="65" r="170" fill="#2563eb" opacity=".12" filter="url(#glow)"/>
+  <circle cx="160" cy="390" r="150" fill="#14b8a6" opacity=".1" filter="url(#glow)"/>
+  <g transform="translate(82 73)">
+    <rect width="440" height="274" rx="16" fill="#07101b" stroke="#28445d" stroke-width="2"/>
+    <rect width="440" height="42" rx="16" fill="#102337"/>
+    <path d="M0 42h440" stroke="#28445d"/>
+    <circle cx="25" cy="21" r="6" fill="#fb7185"/><circle cx="46" cy="21" r="6" fill="#fbbf24"/><circle cx="67" cy="21" r="6" fill="#34d399"/>
+    <path d="M138 42v184M305 42v184M0 226h440" stroke="#28445d"/>
+    <g fill="#7594ad" font-family="monospace" font-size="13">
+      <text x="17" y="72">EXPLORER</text><text x="18" y="101">▾ src</text><text x="31" y="127">  main.rs</text><text x="18" y="153">  README.md</text><text x="18" y="179">  Cargo.toml</text>
+      <text x="153" y="72" fill="#4fd1c5">main.rs</text><text x="153" y="105" fill="#c4b5fd">fn</text><text x="177" y="105" fill="#d7e5ef"> main() {</text><text x="168" y="132" fill="#93c5fd">run</text><text x="191" y="132" fill="#d7e5ef">();</text><text x="153" y="159" fill="#d7e5ef">}</text>
+      <text x="318" y="72">AGENT</text><text x="318" y="105" fill="#34d399">● ready</text><text x="318" y="132" fill="#d7e5ef">› fix tests</text>
+      <text x="17" y="253" fill="#4fd1c5">$</text><text x="34" y="253" fill="#d7e5ef"> tide pi -c</text>
+    </g>
+  </g>
+  <g transform="translate(598 73)">
+    <text y="78" fill="#dff8f5" font-family="system-ui,-apple-system,sans-serif" font-size="88" font-weight="800" letter-spacing="8">TIDE</text>
+    <rect y="112" width="420" height="5" rx="3" fill="url(#accent)"/>
+    <text y="162" fill="#9eb8ca" font-family="system-ui,-apple-system,sans-serif" font-size="27" letter-spacing="2">TERMINAL IDE</text>
+    <text y="214" fill="#6f91a8" font-family="system-ui,-apple-system,sans-serif" font-size="18">Editor · Shell · Coding agents</text>
+    <text y="249" fill="#4fd1c5" font-family="monospace" font-size="18">one command. zero setup friction.</text>
+  </g>
+</svg>

@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=TIDE
+GenericName=Terminal IDE
+Comment=Develop with code, shells, and AI agents in one terminal workspace
+Exec=tide
+Icon=tide
+Terminal=true
+Categories=Development;IDE;
+Keywords=terminal;editor;ide;tmux;agent;code;
+StartupNotify=true

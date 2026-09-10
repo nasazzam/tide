@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="TIDE">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#22d3ee"/>
+      <stop offset="1" stop-color="#6366f1"/>
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="56" fill="#0b1220"/>
+  <path d="M32 151c30 0 30-30 60-30s30 30 60 30 30-30 72-30v38c-30 0-30 30-60 30s-30-30-60-30-30 30-72 30z" fill="url(#g)"/>
+  <path d="M43 74h170v35h-65v83h-40v-83H43z" fill="#f8fafc"/>
+</svg>

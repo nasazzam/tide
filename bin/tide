@@ -1,0 +1,275 @@
+#!/usr/bin/env bash
+# TIDE workspace launcher for Linux, macOS, BSD, and Windows through WSL.
+set -euo pipefail
+
+readonly TIDE_VERSION="0.2.0"
+
+usage() {
+  cat <<'EOF'
+TIDE — Terminal IDE
+
+Usage:
+  tide [tide-options] [agent [agent-args...]]
+  tide [tide-options] agent1 [args...] :: agent2 [args...]
+  tide --editor [path]
+
+Examples:
+  tide pi
+  tide pi -c
+  tide pi --model gpt-5
+  tide pi -c :: claude --continue
+  tide --project ~/code/my-app codex
+  tide                         # editor, terminal, and an empty agent pane
+
+TIDE options (must appear before the agent command):
+  -p, --project PATH           Project directory (default: current directory)
+  -s, --session-name NAME      tmux session name
+  -r, --resume NAME            Attach to NAME, or create it when absent
+      --list-sessions          List restorable TIDE sessions
+      --layout VALUE           classic, agents-left, or agents-bottom
+      --shell-size PERCENT     Project-shell height (10-50; default: 15)
+      --agent-size PERCENT     Agent area size (15-60; default: 30)
+      --editor [PATH]          Open only the TIDE editor
+      --no-attach              Create the workspace without attaching
+      --image-protocol VALUE   auto, sixel, kitty, iterm2, or halfblocks
+  -h, --help                   Show this help
+  -V, --version                Show the version
+
+Use :: to separate two or more agent commands. Everything after the first
+non-TIDE option is passed to the agent unchanged.
+EOF
+}
+
+fail() {
+  printf 'tide: %s\n' "$*" >&2
+  exit 1
+}
+
+command_string() {
+  local rendered
+  printf -v rendered '%q ' "$@"
+  printf '%s' "${rendered% }"
+}
+
+# Read a scalar from a small TOML section without evaluating project content.
+toml_scalar() {
+  local file=$1 section=$2 key=$3
+  awk -v wanted_section="$section" -v wanted_key="$key" '
+    function trim(value) { sub(/^[[:space:]]+/, "", value); sub(/[[:space:]]+$/, "", value); return value }
+    /^[[:space:]]*\[/ {
+      current=$0; gsub(/^[[:space:]]*\[|\][[:space:]]*$/, "", current); next
+    }
+    current == wanted_section && $0 ~ "^[[:space:]]*" wanted_key "[[:space:]]*=" {
+      value=$0; sub(/^[^=]*=/, "", value); sub(/[[:space:]]+#.*$/, "", value); value=trim(value)
+      if (value ~ /^".*"$/ || value ~ /^\047.*\047$/) value=substr(value, 2, length(value)-2)
+      print value; exit
+    }
+  ' "$file"
+}
+
+project="$PWD"
+session_name=""
+attach=1
+restore=0
+list_sessions=0
+layout=""
+shell_size=""
+agent_size=""
+protocol="${TIDE_IMAGE_PROTOCOL:-auto}"
+
+while (( $# )); do
+  case "$1" in
+    -p|--project)
+      (( $# >= 2 )) || fail "$1 requires a path"
+      project=$2
+      shift 2
+      ;;
+    -s|--session-name)
+      (( $# >= 2 )) || fail "$1 requires a name"
+      session_name=$2
+      shift 2
+      ;;
+    -r|--resume)
+      (( $# >= 2 )) || fail "$1 requires a name"
+      session_name=$2
+      restore=1
+      shift 2
+      ;;
+    --list-sessions)
+      list_sessions=1
+      shift
+      ;;
+    --layout)
+      (( $# >= 2 )) || fail "$1 requires a value"
+      layout=$2
+      shift 2
+      ;;
+    --shell-size)
+      (( $# >= 2 )) || fail "$1 requires a percentage"
+      shell_size=$2
+      shift 2
+      ;;
+    --agent-size)
+      (( $# >= 2 )) || fail "$1 requires a percentage"
+      agent_size=$2
+      shift 2
+      ;;
+    --image-protocol)
+      (( $# >= 2 )) || fail "$1 requires a value"
+      protocol=$2
+      shift 2
+      ;;
+    --editor)
+      shift
+      command -v tide-editor >/dev/null 2>&1 || fail "tide-editor is not installed"
+      exec tide-editor "${1:-$project}"
+      ;;
+    --no-attach)
+      attach=0
+      shift
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    -V|--version)
+      printf 'tide %s\n' "$TIDE_VERSION"
+      exit 0
+      ;;
+    --)
+      shift
+      break
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
+
+command -v tmux >/dev/null 2>&1 || fail "tmux is required (on Windows, run TIDE inside WSL)"
+if (( list_sessions )); then
+  tmux list-sessions -F '#{session_name}\t#{@tide_project}\t#{session_attached}' 2>/dev/null \
+    | awk -F '\t' '$1 ~ /^tide-/ || $2 != "" { printf "%-32s  %s%s\n", $1, ($2 == "" ? "unknown project" : $2), ($3 > 0 ? "  [attached]" : "") }'
+  exit 0
+fi
+command -v tide-editor >/dev/null 2>&1 || fail "tide-editor is not installed"
+[[ -d $project ]] || fail "project directory does not exist: $project"
+project=$(cd "$project" && pwd -P)
+
+config_file="$project/.tide.toml"
+if [[ -f $config_file ]]; then
+  [[ -n $layout ]] || layout=$(toml_scalar "$config_file" workspace layout)
+  [[ -n $shell_size ]] || shell_size=$(toml_scalar "$config_file" workspace shell_size)
+  [[ -n $agent_size ]] || agent_size=$(toml_scalar "$config_file" workspace agent_size)
+  if [[ -z $session_name ]]; then
+    session_name=$(toml_scalar "$config_file" workspace session)
+    [[ $session_name != project ]] || session_name="tide-$(basename "$project" | tr -cs '[:alnum:]_-' '-')"
+  fi
+  config_restore=$(toml_scalar "$config_file" workspace restore)
+  [[ $config_restore != true ]] || restore=1
+fi
+if [[ -n $session_name && ! $session_name =~ ^[[:alnum:]_.-]+$ ]]; then
+  fail "session name may contain only letters, numbers, dot, underscore, and hyphen"
+fi
+layout=${layout:-classic}
+shell_size=${shell_size:-15}
+agent_size=${agent_size:-30}
+case "$layout" in classic|agents-left|agents-bottom) ;; *) fail "unsupported layout: $layout" ;; esac
+[[ $shell_size =~ ^[0-9]+$ ]] && (( shell_size >= 10 && shell_size <= 50 )) || fail "shell size must be between 10 and 50"
+[[ $agent_size =~ ^[0-9]+$ ]] && (( agent_size >= 15 && agent_size <= 60 )) || fail "agent size must be between 15 and 60"
+
+case "$protocol" in
+  auto)
+    case "${TERM_PROGRAM:-}:${TERM:-}" in
+      *kitty*|*Kitty*) protocol=kitty ;;
+      *iTerm*|*WezTerm*) protocol=iterm2 ;;
+      *foot*|*sixel*) protocol=sixel ;;
+      *) protocol=halfblocks ;;
+    esac
+    ;;
+  sixel|kitty|iterm2|halfblocks) ;;
+  *) fail "unsupported image protocol: $protocol" ;;
+esac
+
+# Split arguments into agent commands at `::` without using eval.
+agents=()
+current=()
+for argument in "$@"; do
+  if [[ $argument == "::" ]]; then
+    (( ${#current[@]} )) || fail "empty agent command before ::"
+    agents+=("$(command_string "${current[@]}")")
+    current=()
+  else
+    current+=("$argument")
+  fi
+done
+if (( ${#current[@]} )); then
+  agents+=("$(command_string "${current[@]}")")
+elif (( $# )) && [[ ${!#} == "::" ]]; then
+  fail "empty agent command after ::"
+fi
+
+if (( restore )) && [[ -n $session_name ]] && tmux has-session -t "=$session_name" 2>/dev/null; then
+  if [[ -n ${TMUX:-} ]]; then
+    exec tmux switch-client -t "$session_name"
+  elif (( attach )); then
+    exec tmux attach-session -t "$session_name"
+  else
+    printf 'TIDE workspace already exists: %s\n' "$session_name"
+    exit 0
+  fi
+fi
+
+if [[ -n ${TMUX:-} ]]; then
+  workspace=${TMUX_PANE:?}
+  tmux rename-window -t "$workspace" "$(basename "$project")"
+else
+  if [[ -z $session_name ]]; then
+    safe_name=$(basename "$project" | tr -cs '[:alnum:]_-' '-')
+    session_name="tide-${safe_name:-workspace}-$$"
+  fi
+  tmux has-session -t "=$session_name" 2>/dev/null && fail "tmux session already exists: $session_name"
+  workspace=$(tmux new-session -d -s "$session_name" -c "$project" -P -F '#{pane_id}')
+  tmux set-option -t "$session_name" @tide_project "$project"
+  tmux rename-window -t "$workspace" "$(basename "$project")"
+fi
+
+# Build the configured workspace while retaining the original pane for the editor.
+shell_pane=$(tmux split-window -v -p "$shell_size" -t "$workspace" -c "$project" -P -F '#{pane_id}')
+case "$layout" in
+  classic)
+    agent_pane=$(tmux split-window -h -p "$agent_size" -t "$workspace" -c "$project" -P -F '#{pane_id}')
+    ;;
+  agents-left)
+    agent_pane=$(tmux split-window -h -b -p "$agent_size" -t "$workspace" -c "$project" -P -F '#{pane_id}')
+    ;;
+  agents-bottom)
+    agent_pane=$(tmux split-window -v -p "$agent_size" -t "$workspace" -c "$project" -P -F '#{pane_id}')
+    ;;
+esac
+# Keep the project shell idle and ready for input.
+tmux select-pane -t "$shell_pane"
+
+if (( ${#agents[@]} )); then
+  tmux send-keys -t "$agent_pane" -l "${agents[0]}"
+  tmux send-keys -t "$agent_pane" C-m
+  for (( index=1; index<${#agents[@]}; index++ )); do
+    agent_pane=$(tmux split-window -v -t "$agent_pane" -c "$project" -P -F '#{pane_id}')
+    tmux send-keys -t "$agent_pane" -l "${agents[index]}"
+    tmux send-keys -t "$agent_pane" C-m
+  done
+fi
+
+editor_command=$(command_string env "TIDE_IMAGE_PROTOCOL=$protocol" tide-editor "$project")
+tmux send-keys -t "$workspace" -l "$editor_command"
+tmux send-keys -t "$workspace" C-m
+tmux select-pane -t "$workspace"
+
+if [[ -n ${TMUX:-} ]]; then
+  exit 0
+fi
+if (( attach )); then
+  exec tmux attach-session -t "$session_name"
+else
+  printf 'Created TIDE workspace: %s\nAttach with: tmux attach -t %q\n' "$session_name" "$session_name"
+fi
