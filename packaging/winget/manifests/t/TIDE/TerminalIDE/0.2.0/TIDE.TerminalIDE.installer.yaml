@@ -4,7 +4,7 @@ InstallerType: zip
 Installers:
   - Architecture: x64
     InstallerUrl: https://github.com/nasazzam/tide/releases/download/v0.2.0/tide-v0.2.0-x86_64-pc-windows-msvc.zip
-    InstallerSha256: B4102BB37A11D2F2F2DF8969B54C7DE070626D224E30EAC37299D990439F3741
+    InstallerSha256: EA9B9DDB0E2C1088388D76F348404E0C85720D4F5F57F59ECAB29DE32ED4AE82
     NestedInstallerType: portable
     NestedInstallerFiles:
       - RelativeFilePath: tide-editor.exe
