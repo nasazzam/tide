@@ -1,6 +1,6 @@
 pkgbase = tide-terminal-ide
 	pkgdesc = A focused terminal IDE for code, shells, and AI agents
-	pkgver = 0.4.2
+	pkgver = 0.4.3
 	pkgrel = 1
 	url = https://github.com/nasazzam/tide
 	arch = x86_64
@@ -14,7 +14,7 @@ pkgbase = tide-terminal-ide
 	optdepends = imagemagick: additional image and font previews
 	optdepends = ffmpegthumbnailer: video previews
 	options = !debug
-	source = tide-terminal-ide-0.4.2.tar.gz::https://github.com/nasazzam/tide/archive/refs/tags/v0.4.2.tar.gz
-	sha256sums = 7d09786361ae39d0302e6cfd7a8eaa987cc170acfdec50e5b84083ba26b8089f
+	source = tide-terminal-ide-0.4.3.tar.gz::https://github.com/nasazzam/tide/archive/refs/tags/v0.4.3.tar.gz
+	sha256sums = SKIP
 
 pkgname = tide-terminal-ide

@@ -2,7 +2,7 @@
 # TIDE workspace launcher for Linux, macOS, BSD, and Windows through WSL.
 set -euo pipefail
 
-readonly TIDE_VERSION="0.4.2"
+readonly TIDE_VERSION="0.4.3"
 
 usage() {
   cat <<'EOF'
@@ -51,30 +51,128 @@ command_string() {
   printf '%s' "${rendered% }"
 }
 
+reflow_workspace() {
+  local workspace=$1 layout=$2 shell_size=$3 agent_size=$4 editor_pane=$5 terminal_pane=$6
+  local panes_value=$7 editor_visible=$8 agent_visible=$9 terminal_visible=${10}
+  local anchor pane pane_window primary_agent
+  local -a panes
+  IFS=, read -r -a panes <<<"$panes_value"
+  primary_agent=${panes[0]}
+
+  if [[ $editor_visible == 1 ]]; then
+    anchor=$editor_pane
+  elif [[ $agent_visible == 1 ]]; then
+    anchor=$primary_agent
+  else
+    anchor=$terminal_pane
+  fi
+
+  for pane in "$editor_pane" "$terminal_pane" "${panes[@]}"; do
+    [[ $pane == "$anchor" ]] && continue
+    pane_window=$(tmux display-message -p -t "$pane" '#{window_id}')
+    if [[ $pane_window == "$workspace" ]]; then
+      tmux break-pane -d -s "$pane" -n '_tide-reflow'
+    fi
+  done
+
+  if [[ $terminal_visible == 1 && $terminal_pane != "$anchor" ]]; then
+    tmux join-pane -d -v -l "${shell_size}%" -s "$terminal_pane" -t "$anchor"
+  fi
+  if [[ $agent_visible == 1 && $primary_agent != "$anchor" ]]; then
+    case "$layout" in
+      classic) tmux join-pane -d -h -l "${agent_size}%" -s "$primary_agent" -t "$editor_pane" ;;
+      agents-left) tmux join-pane -d -h -b -l "${agent_size}%" -s "$primary_agent" -t "$editor_pane" ;;
+      agents-bottom) tmux join-pane -d -v -l "${agent_size}%" -s "$primary_agent" -t "$editor_pane" ;;
+    esac
+  fi
+  if [[ $agent_visible == 1 ]]; then
+    for pane in "${panes[@]:1}"; do
+      tmux join-pane -d -v -s "$pane" -t "$primary_agent"
+    done
+  fi
+}
+
 toggle_workspace_pane() {
-  local role=${1:-} source=${2:-${TMUX_PANE:-}} option target current current_role zoomed
+  local role=${1:-} source=${2:-${TMUX_PANE:-}} option panes_value visible
+  local workspace layout shell_size agent_size editor_pane terminal_pane anchor pane
+  local editor_visible agent_visible terminal_visible
+  local -a panes
   command -v tmux >/dev/null 2>&1 || fail "tmux is required"
   [[ -n $source ]] || fail "pane toggle must run inside tmux"
+
+  workspace=$(tmux display-message -p -t "$source" '#{window_id}')
+  layout=$(tmux display-message -p -t "$source" '#{@tide_layout}')
+  [[ -n $layout ]] || fail "this is not a TIDE workspace window"
+  shell_size=$(tmux display-message -p -t "$source" '#{@tide_shell_size}')
+  agent_size=$(tmux display-message -p -t "$source" '#{@tide_agent_size}')
+  editor_pane=$(tmux display-message -p -t "$source" '#{@tide_editor_pane}')
+  terminal_pane=$(tmux display-message -p -t "$source" '#{@tide_terminal_pane}')
+  panes_value=$(tmux display-message -p -t "$source" '#{@tide_agent_panes}')
+  IFS=, read -r -a panes <<<"$panes_value"
+  editor_visible=$(tmux display-message -p -t "$source" '#{@tide_editor_visible}')
+  agent_visible=$(tmux display-message -p -t "$source" '#{@tide_agent_visible}')
+  terminal_visible=$(tmux display-message -p -t "$source" '#{@tide_terminal_visible}')
+
   case "$role" in
-    editor) option='#{@tide_editor_pane}' ;;
-    agent) option='#{@tide_agent_pane}' ;;
-    terminal) option='#{@tide_terminal_pane}' ;;
+    editor) option=@tide_editor_visible; visible=$editor_visible ;;
+    agent) option=@tide_agent_visible; visible=$agent_visible ;;
+    terminal) option=@tide_terminal_visible; visible=$terminal_visible ;;
     *) fail "unknown pane role: $role" ;;
   esac
-  target=$(tmux display-message -p -t "$source" "$option")
-  [[ -n $target ]] || fail "this is not a TIDE workspace window"
-  current=$(tmux display-message -p -t "$source" '#{pane_id}')
-  current_role=$(tmux display-message -p -t "$source" '#{@tide_role}')
-  if [[ $role == agent && $current_role == agent ]]; then
-    target=$current
+
+  if [[ $visible == 1 ]]; then
+    if (( editor_visible + agent_visible + terminal_visible <= 1 )); then
+      tmux display-message -t "$source" "TIDE keeps at least one workspace pane visible"
+      return 0
+    fi
+    case "$role" in
+      editor)
+        tmux break-pane -d -s "$editor_pane" -n '_tide-hidden-editor'
+        editor_visible=0
+        ;;
+      agent)
+        for pane in "${panes[@]}"; do
+          tmux break-pane -d -s "$pane" -n '_tide-hidden-agent'
+        done
+        agent_visible=0
+        ;;
+      terminal)
+        tmux break-pane -d -s "$terminal_pane" -n '_tide-hidden-terminal'
+        terminal_visible=0
+        ;;
+    esac
+    tmux set-option -w -t "$workspace" "$option" 0
+  else
+    if [[ $editor_visible == 1 ]]; then
+      anchor=$editor_pane
+    elif [[ $agent_visible == 1 ]]; then
+      anchor=${panes[0]}
+    else
+      anchor=$terminal_pane
+    fi
+    case "$role" in
+      editor)
+        tmux join-pane -d -s "$editor_pane" -t "$anchor"
+        editor_visible=1
+        ;;
+      agent)
+        for pane in "${panes[@]}"; do
+          tmux join-pane -d -s "$pane" -t "$anchor"
+        done
+        agent_visible=1
+        ;;
+      terminal)
+        tmux join-pane -d -s "$terminal_pane" -t "$anchor"
+        terminal_visible=1
+        ;;
+    esac
+    tmux set-option -w -t "$workspace" "$option" 1
   fi
-  zoomed=$(tmux display-message -p -t "$source" '#{window_zoomed_flag}')
-  if [[ $zoomed == 1 ]]; then
-    tmux resize-pane -Z -t "$current"
-    [[ $current == "$target" ]] && return 0
-  fi
-  tmux select-pane -t "$target"
-  tmux resize-pane -Z -t "$target"
+
+  reflow_workspace "$workspace" "$layout" "$shell_size" "$agent_size" \
+    "$editor_pane" "$terminal_pane" "$panes_value" \
+    "$editor_visible" "$agent_visible" "$terminal_visible"
+  tmux select-window -t "$workspace"
 }
 
 if [[ ${1:-} == --_toggle-pane ]]; then
@@ -285,6 +383,7 @@ tmux set-option -p -t "$workspace" @tide_role editor
 tmux set-option -p -t "$shell_pane" @tide_role terminal
 tmux set-option -p -t "$agent_pane" @tide_role agent
 primary_agent_pane=$agent_pane
+agent_pane_ids=("$agent_pane")
 
 # Keep the project shell idle and ready for input.
 tmux select-pane -t "$shell_pane"
@@ -295,14 +394,23 @@ if (( ${#agents[@]} )); then
   for (( index=1; index<${#agents[@]}; index++ )); do
     agent_pane=$(tmux split-window -v -t "$agent_pane" -c "$project" -P -F '#{pane_id}')
     tmux set-option -p -t "$agent_pane" @tide_role agent
+    agent_pane_ids+=("$agent_pane")
     tmux send-keys -t "$agent_pane" -l "${agents[index]}"
     tmux send-keys -t "$agent_pane" C-m
   done
 fi
 
+agent_panes_csv=$(IFS=,; printf '%s' "${agent_pane_ids[*]}")
 tmux set-option -w -t "$workspace" @tide_editor_pane "$workspace"
 tmux set-option -w -t "$workspace" @tide_agent_pane "$primary_agent_pane"
+tmux set-option -w -t "$workspace" @tide_agent_panes "$agent_panes_csv"
 tmux set-option -w -t "$workspace" @tide_terminal_pane "$shell_pane"
+tmux set-option -w -t "$workspace" @tide_layout "$layout"
+tmux set-option -w -t "$workspace" @tide_shell_size "$shell_size"
+tmux set-option -w -t "$workspace" @tide_agent_size "$agent_size"
+tmux set-option -w -t "$workspace" @tide_editor_visible 1
+tmux set-option -w -t "$workspace" @tide_agent_visible 1
+tmux set-option -w -t "$workspace" @tide_terminal_visible 1
 
 # Home-row bindings only act in a TIDE window; elsewhere tmux passes them through.
 tmux bind-key -n C-S-a if-shell -F '#{!=:#{@tide_editor_pane},}' \

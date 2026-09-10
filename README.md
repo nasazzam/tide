@@ -328,9 +328,9 @@ Detailed feature documentation is available in the
 | <kbd>Ctrl</kbd>+<kbd>Space</kbd> | Request LSP completion |
 | <kbd>F5</kbd> | Refresh project and Git state |
 | <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>A</kbd> | Show / hide Explorer |
-| <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd> | Toggle focused Editor view |
-| <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F</kbd> | Toggle focused Agent view |
-| <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>G</kbd> | Toggle focused Terminal view |
+| <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd> | Show / hide Editor |
+| <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F</kbd> | Show / hide all Agent panes |
+| <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>G</kbd> | Show / hide Terminal |
 
 ### Editor and Explorer
 

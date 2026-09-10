@@ -43,16 +43,18 @@ or [project configuration](../README.md#project-configuration).
 TIDE uses adjacent home-row chords for distraction-free navigation:
 
 - <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>A</kbd> shows or hides Explorer.
-- <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd> focuses and expands Editor.
+- <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd> shows or hides Editor.
 - <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>D</kbd> opens the live Diff review.
-- <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F</kbd> focuses and expands Agent.
-- <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>G</kbd> focuses and expands Terminal.
+- <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F</kbd> shows or hides all Agent panes.
+- <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>G</kbd> shows or hides Terminal.
 
-Press the Editor, Agent, or Terminal chord again to restore the complete
-workspace. Switching directly from one focused pane to another also works. The
-bindings are conditional: outside a TIDE workspace window, tmux passes these
-chords through normally. A terminal with extended-key support is required to
-distinguish Ctrl+Shift from Ctrl; TIDE enables tmux's extended-key handling.
+Hidden panes keep their running processes and return exactly where they left
+off. Every remaining pane automatically expands to use the available space,
+and the configured layout and sizes are rebuilt when a pane returns. TIDE keeps
+at least one of Editor, Agent, or Terminal visible. The bindings are conditional:
+outside a TIDE workspace window, tmux passes these chords through normally. A
+terminal with extended-key support is required to distinguish Ctrl+Shift from
+Ctrl; TIDE enables tmux's extended-key handling.
 
 ## Quick Open and project search
 

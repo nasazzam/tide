@@ -1,20 +1,19 @@
-# Copy-ready v0.4.2 release post
+# Copy-ready v0.4.3 release post
 
-> **TIDE v0.4.2 — tmux 3.4 compatibility fix**
+> **TIDE v0.4.3 — adaptive pane visibility**
 >
-> TIDE now uses tmux's portable percentage pane-sizing syntax. This fixes
-> workspace startup on tmux 3.4, where `tide pi -c` previously stopped with:
+> Workspace controls now switch each view fully on or off:
 >
-> ```text
-> size missing
-> ```
+> • `Ctrl+Shift+A` — show or hide Explorer
+> • `Ctrl+Shift+S` — show or hide Editor
+> • `Ctrl+Shift+D` — open live Hunk Diff
+> • `Ctrl+Shift+F` — show or hide all Agent panes
+> • `Ctrl+Shift+G` — show or hide Terminal
 >
-> Upgrade by running the installer again:
+> Remaining panes automatically expand into all available space. Hidden panes
+> keep their processes running and return in the configured workspace layout,
+> so agent sessions and shell state are preserved.
 >
-> ```bash
-> curl -fsSL https://raw.githubusercontent.com/nasazzam/tide/main/install.sh | bash
-> ```
->
-> Release: <https://github.com/nasazzam/tide/releases/tag/v0.4.2>
+> Release: <https://github.com/nasazzam/tide/releases/tag/v0.4.3>
 
 Attach: `assets/tide-workspace.png`

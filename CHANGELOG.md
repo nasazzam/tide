@@ -5,6 +5,15 @@ All notable changes to TIDE will be documented here. This project follows
 
 ## [Unreleased]
 
+## [0.4.3] - 2026-09-10
+
+### Changed
+
+- Editor, Agent, and Terminal controls now truly hide and restore their panes
+  instead of zooming them; remaining panes automatically consume freed space.
+- Hidden panes preserve their running processes and return in the configured
+  workspace layout.
+
 ## [0.4.2] - 2026-09-10
 
 ### Fixed
@@ -51,7 +60,8 @@ All notable changes to TIDE will be documented here. This project follows
 - Linux, macOS, Windows, WSL, Arch, Omarchy, Homebrew, and Winget packaging.
 - Checksum-verifying release installer and cross-platform CI.
 
-[Unreleased]: https://github.com/nasazzam/tide/compare/v0.4.2...HEAD
+[Unreleased]: https://github.com/nasazzam/tide/compare/v0.4.3...HEAD
+[0.4.3]: https://github.com/nasazzam/tide/releases/tag/v0.4.3
 [0.4.2]: https://github.com/nasazzam/tide/releases/tag/v0.4.2
 [0.4.1]: https://github.com/nasazzam/tide/releases/tag/v0.4.1
 [0.4.0]: https://github.com/nasazzam/tide/releases/tag/v0.4.0
