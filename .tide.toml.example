@@ -1,0 +1,17 @@
+# Copy to .tide.toml in a project and adjust as needed.
+[workspace]
+layout = "classic"       # classic, agents-left, or agents-bottom
+shell_size = 15          # percentage, 10-50
+agent_size = 30          # percentage, 15-60
+session = "project"      # "project" creates tide-<directory>; or use any name
+restore = true           # reconnect when that named tmux session already exists
+
+[editor]
+explorer_width = 28      # percentage, 15-60
+show_hidden = false
+
+[lsp]
+# Omit command to auto-detect rust-analyzer, gopls, pylsp, or
+# typescript-language-server from project markers and PATH.
+command = ["rust-analyzer"]
+disabled = false

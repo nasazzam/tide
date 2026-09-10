@@ -1,0 +1,67 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  unix:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+          - os: macos-15-intel
+            target: x86_64-apple-darwin
+          - os: macos-latest
+            target: aarch64-apple-darwin
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - run: cargo build --locked --release --target ${{ matrix.target }}
+      - name: Package
+        run: |
+          mkdir staging
+          cp target/${{ matrix.target }}/release/tide-editor bin/tide README.md LICENSE staging/
+          if [[ "${{ matrix.target }}" == *-linux-gnu ]]; then
+            cp packaging/linux/tide.desktop assets/tide.svg staging/
+          fi
+          archive=tide-${{ github.ref_name }}-${{ matrix.target }}.tar.gz
+          tar -C staging -czf "$archive" .
+          if command -v sha256sum >/dev/null; then
+            sha256sum "$archive" > "$archive.sha256"
+          else
+            shasum -a 256 "$archive" > "$archive.sha256"
+          fi
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            tide-${{ github.ref_name }}-${{ matrix.target }}.tar.gz
+            tide-${{ github.ref_name }}-${{ matrix.target }}.tar.gz.sha256
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo build --locked --release
+      - name: Package
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory staging
+          Copy-Item target/release/tide-editor.exe,bin/tide.ps1,bin/tide.cmd,README.md,LICENSE staging/
+          $archive = "tide-${{ github.ref_name }}-x86_64-pc-windows-msvc.zip"
+          Compress-Archive staging/* $archive
+          $hash = (Get-FileHash $archive -Algorithm SHA256).Hash.ToLower()
+          "$hash  $archive" | Set-Content "$archive.sha256"
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            tide-${{ github.ref_name }}-x86_64-pc-windows-msvc.zip
+            tide-${{ github.ref_name }}-x86_64-pc-windows-msvc.zip.sha256

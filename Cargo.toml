@@ -1,0 +1,33 @@
+[package]
+name = "tide-terminal-ide"
+version = "0.2.0"
+edition = "2024"
+rust-version = "1.88"
+description = "A focused terminal IDE with an agent-ready tmux workspace"
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/nasazzam/tide"
+homepage = "https://github.com/nasazzam/tide"
+keywords = ["terminal", "ide", "tui", "tmux", "ai-agent"]
+categories = ["command-line-utilities", "development-tools", "text-editors"]
+exclude = ["assets/*"]
+
+[[bin]]
+name = "tide-editor"
+path = "src/main.rs"
+
+[dependencies]
+crossterm = "0.28.1"
+ratatui = "0.29.0"
+unicode-width = "0.2.0"
+image = { version = "0.25.10", default-features = false, features = ["png", "jpeg", "gif", "webp", "bmp", "tiff"] }
+syntect = { version = "5.3.0", default-features = false, features = ["default-fancy"] }
+ratatui-image = { version = "8.0.1", default-features = false, features = ["crossterm"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+toml = "0.9"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = true

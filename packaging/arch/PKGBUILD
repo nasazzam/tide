@@ -1,0 +1,50 @@
+# Maintainer: TIDE Contributors
+pkgname=tide-terminal-ide
+pkgver=0.2.0
+pkgrel=1
+pkgdesc='A focused terminal IDE for code, shells, and AI agents'
+arch=('x86_64')
+url='https://github.com/nasazzam/tide'
+license=('MIT')
+options=('!debug')
+depends=('gcc-libs' 'glibc' 'tmux')
+makedepends=('cargo')
+optdepends=(
+  'git: repository status in the Explorer'
+  'poppler: PDF previews'
+  'imagemagick: additional image and font previews'
+  'ffmpegthumbnailer: video previews'
+)
+source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz")
+sha256sums=('SKIP')
+
+prepare() {
+  cd "tide-$pkgver"
+  export RUSTUP_TOOLCHAIN=stable
+  cargo fetch --locked --target "$CARCH-unknown-linux-gnu"
+}
+
+build() {
+  cd "tide-$pkgver"
+  export RUSTUP_TOOLCHAIN=stable
+  export CARGO_TARGET_DIR=target
+  cargo build --frozen --release
+}
+
+check() {
+  cd "tide-$pkgver"
+  export RUSTUP_TOOLCHAIN=stable
+  export CARGO_TARGET_DIR=target
+  cargo test --frozen
+  bash tests/launcher-test.sh
+}
+
+package() {
+  cd "tide-$pkgver"
+  install -Dm755 target/release/tide-editor "$pkgdir/usr/bin/tide-editor"
+  install -Dm755 bin/tide "$pkgdir/usr/bin/tide"
+  install -Dm644 packaging/linux/tide.desktop "$pkgdir/usr/share/applications/tide.desktop"
+  install -Dm644 assets/tide.svg "$pkgdir/usr/share/icons/hicolor/scalable/apps/tide.svg"
+  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+  install -Dm644 README.md "$pkgdir/usr/share/doc/$pkgname/README.md"
+}

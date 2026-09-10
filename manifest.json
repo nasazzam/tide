@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "org.tide.launcher",
+  "name": "TIDE Launcher",
+  "version": "0.2.0",
+  "author": "TIDE Contributors",
+  "description": "Launch TIDE from the Omarchy bar",
+  "kinds": [
+    "bar-widget"
+  ],
+  "entryPoints": {
+    "barWidget": "TideWidget.qml"
+  },
+  "barWidget": {
+    "displayName": "TIDE",
+    "description": "Launch or focus the TIDE terminal IDE",
+    "category": "Apps",
+    "allowMultiple": false,
+    "defaultSection": "left"
+  }
+}
