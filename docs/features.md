@@ -12,6 +12,7 @@ project tools. For installation and command-line usage, return to the
 - [Quick Open and project search](#quick-open-and-project-search)
 - [Live file synchronization](#live-file-synchronization)
 - [Git integration](#git-integration)
+- [Live diff review with Hunk](#live-diff-review-with-hunk)
 - [Media and binary previews](#media-and-binary-previews)
 - [LSP diagnostics and completion](#lsp-diagnostics-and-completion)
 - [File management](#file-management)
@@ -54,7 +55,34 @@ data loss.
 
 The Explorer refreshes repository status and decorates modified, added,
 deleted, and untracked paths. Parent directories inherit status when they
-contain changed files.
+contain changed files. The editor header continuously summarizes changed files,
+diff hunks, additions, and deletions.
+
+## Live diff review with Hunk
+
+The **Δ DIFF** control at the top-right of the editor opens the current
+changeset in [Hunk](https://hunk.dev), a review-first terminal diff viewer built
+for agent-authored changes. Click it or press <kbd>Ctrl</kbd>+<kbd>D</kbd> to open
+a live `hunk diff --watch` review. Hunk reloads while an agent edits files and
+supports multi-file review, split or unified layouts, hunk navigation, and
+inline agent annotations.
+
+Inside a TIDE workspace, the review opens in a dedicated tmux window named
+`diff`; leave it with Hunk's quit command and switch tmux windows normally.
+Editor-only mode temporarily hands the terminal to Hunk and restores TIDE when
+the review closes.
+
+Hunk is optional. Install it using one of its supported methods:
+
+```bash
+brew install hunk
+# or: mise use -g hunk
+# or: npm install -g hunkdiff
+```
+
+Agents can participate in a live review through Hunk's own skill and session
+controls. Run `hunk skill path` and ask the agent to load that skill for review
+annotations and change explanations.
 
 ## Media and binary previews
 

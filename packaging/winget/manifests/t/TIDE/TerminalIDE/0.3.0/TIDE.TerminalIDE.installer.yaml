@@ -1,0 +1,13 @@
+PackageIdentifier: TIDE.TerminalIDE
+PackageVersion: 0.3.0
+InstallerType: zip
+Installers:
+  - Architecture: x64
+    InstallerUrl: https://github.com/nasazzam/tide/releases/download/v0.3.0/tide-v0.3.0-x86_64-pc-windows-msvc.zip
+    InstallerSha256: 75E1F099A75C8E9B652694CBA92EA5B4103D1C769E02811F544B52D2A67E183E
+    NestedInstallerType: portable
+    NestedInstallerFiles:
+      - RelativeFilePath: tide-editor.exe
+        PortableCommandAlias: tide-editor
+ManifestType: installer
+ManifestVersion: 1.9.0

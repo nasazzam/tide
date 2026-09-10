@@ -1,21 +1,20 @@
-# Copy-ready v0.2.0 release post
+# Copy-ready v0.3.0 release post
 
-> **TIDE v0.2.0 — the roadmap release**
+> **TIDE v0.3.0 — live agent diff review**
 >
-> Every item from TIDE's original roadmap is now implemented:
-> • project configuration through `.tide.toml`
-> • three configurable workspace layouts and pane sizing
-> • native LSP diagnostics and completion
-> • safe Explorer create, rename, move, and delete actions
-> • named workspace restoration
-> • Homebrew formula and Winget package manifests
+> TIDE now puts a live **Δ DIFF** control directly in the editor header. It
+> continuously shows changed files, hunks, additions, and deletions. Click it or
+> press `Ctrl+D` to review the current changeset with Hunk in watch mode.
 >
-> TIDE still brings the editor, project shell, and one or more coding agents
-> together with one command:
+> The review follows changes while your coding agents work and supports
+> multi-file navigation, split or unified diffs, and inline agent annotations.
+> Inside a TIDE workspace it opens in a dedicated tmux window; editor-only mode
+> runs it in the current terminal and restores TIDE afterward.
+>
 > ```bash
-> tide --resume tide-my-app pi -c :: claude --continue
+> tide pi -c :: claude --continue
 > ```
 >
-> Release: <https://github.com/nasazzam/tide/releases/tag/v0.2.0>
+> Release: <https://github.com/nasazzam/tide/releases/tag/v0.3.0>
 
 Attach: `assets/tide-workspace.png`

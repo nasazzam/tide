@@ -157,7 +157,8 @@ Use another installation prefix if needed:
 ### System dependencies
 
 The full workspace requires **tmux 3.2+**. Building from source requires
-**Rust 1.88+**. Git and the preview utilities are optional.
+**Rust 1.88+**. Git, [Hunk](https://hunk.dev) diff review, and the preview
+utilities are optional.
 
 | Platform | Install dependencies |
 |---|---|
@@ -312,6 +313,7 @@ Detailed feature documentation is available in the
 |---|---|
 | <kbd>Ctrl</kbd>+<kbd>E</kbd> | Switch Explorer / Editor focus |
 | <kbd>Ctrl</kbd>+<kbd>P</kbd> | Quick Open; start with `%` for content search |
+| <kbd>Ctrl</kbd>+<kbd>D</kbd> | Open a live Hunk diff review |
 | <kbd>Ctrl</kbd>+<kbd>S</kbd> | Save |
 | <kbd>Ctrl</kbd>+<kbd>Q</kbd> | Quit safely |
 | <kbd>Ctrl</kbd>+<kbd>W</kbd> | Close active file |
@@ -329,7 +331,7 @@ Detailed feature documentation is available in the
 | Explorer | `Ctrl+H` toggles hidden files; `[` and `]` scroll deep trees |
 | Explorer | `n` new file, `N` new directory, `r` rename, `m` move, `d` delete |
 | Quick Open | Up/Down selects, Enter opens, Escape closes |
-| Mouse | Select text, scroll panes, open files, switch and close tabs |
+| Mouse | Select text, scroll panes, open files, switch and close tabs, open Δ DIFF |
 
 ## Development
 

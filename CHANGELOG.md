@@ -5,6 +5,16 @@ All notable changes to TIDE will be documented here. This project follows
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-09-10
+
+### Added
+
+- Live Hunk diff review from the editor header or `Ctrl+D`.
+- Continuously refreshed changed-file, hunk, addition, and deletion counts.
+- Dedicated tmux diff window with watch mode for agent-authored changes.
+- Foreground Hunk review support when running the native editor without tmux.
+- Documentation for Hunk's live agent review and annotation workflow.
+
 ## [0.2.0] - 2026-09-09
 
 ### Added
@@ -22,5 +32,6 @@ All notable changes to TIDE will be documented here. This project follows
 - Linux, macOS, Windows, WSL, Arch, Omarchy, Homebrew, and Winget packaging.
 - Checksum-verifying release installer and cross-platform CI.
 
-[Unreleased]: https://github.com/nasazzam/tide/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/nasazzam/tide/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/nasazzam/tide/releases/tag/v0.3.0
 [0.2.0]: https://github.com/nasazzam/tide/releases/tag/v0.2.0

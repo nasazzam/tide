@@ -44,6 +44,6 @@ grep -F 'split-window -v -p 20' "$TIDE_TEST_LOG" >/dev/null
 grep -F 'split-window -h -b -p 40' "$TIDE_TEST_LOG" >/dev/null
 "$root/bin/tide" --list-sessions | grep -F 'tide-restored' >/dev/null
 
-"$root/bin/tide" --version | grep -F 'tide 0.2.0' >/dev/null
+"$root/bin/tide" --version | grep -F 'tide 0.3.0' >/dev/null
 "$root/bin/tide" --help | grep -F 'agent1 [args...] :: agent2' >/dev/null
 printf 'launcher tests passed\n'

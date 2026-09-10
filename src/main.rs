@@ -455,6 +455,27 @@ impl Editor {
     }
 }
 
+#[derive(Clone, Default, PartialEq, Eq)]
+struct DiffSummary {
+    files: usize,
+    hunks: usize,
+    additions: usize,
+    deletions: usize,
+}
+
+impl DiffSummary {
+    fn label(&self) -> String {
+        if self.files == 0 {
+            " Δ DIFF · CLEAN ".into()
+        } else {
+            format!(
+                " Δ DIFF · {}F {}H +{} -{} ",
+                self.files, self.hunks, self.additions, self.deletions
+            )
+        }
+    }
+}
+
 #[derive(Clone)]
 struct SearchResult {
     path: PathBuf,
@@ -509,6 +530,8 @@ struct App {
     git_status: HashMap<PathBuf, char>,
     git_enabled: bool,
     last_git_refresh: Instant,
+    diff_summary: DiffSummary,
+    launch_hunk_foreground: bool,
     image_picker: Picker,
     image_protocol_name: String,
     explorer_width: u16,
@@ -560,7 +583,7 @@ impl App {
             active: 0,
             focus: Focus::Explorer,
             message: format!(
-                "Mouse enabled · Ctrl+E switch · Ctrl+S save · Ctrl+Q quit{lsp_message}"
+                "Mouse enabled · Ctrl+E switch · Ctrl+D diff · Ctrl+S save · Ctrl+Q quit{lsp_message}"
             ),
             quit: false,
             last_watch: Instant::now(),
@@ -570,6 +593,8 @@ impl App {
             git_status: HashMap::new(),
             git_enabled,
             last_git_refresh: Instant::now() - Duration::from_secs(10),
+            diff_summary: DiffSummary::default(),
+            launch_hunk_foreground: false,
             image_picker,
             image_protocol_name,
             explorer_width: config.editor.explorer_width,
@@ -580,6 +605,7 @@ impl App {
             lsp,
         };
         app.refresh_git_status();
+        app.refresh_diff_summary();
         app
     }
 
@@ -776,6 +802,96 @@ impl App {
         }
     }
 
+    fn refresh_diff_summary(&mut self) -> bool {
+        if !self.git_enabled {
+            return false;
+        }
+
+        let status = Command::new("git")
+            .arg("-C")
+            .arg(&self.root)
+            .args(["status", "--porcelain=v1", "-z", "--untracked-files=all"])
+            .output();
+        let diff = Command::new("git")
+            .arg("-C")
+            .arg(&self.root)
+            .args(["diff", "--no-ext-diff", "--unified=0", "HEAD", "--"])
+            .output();
+        let Ok(status) = status else {
+            return false;
+        };
+        if !status.status.success() {
+            return false;
+        }
+
+        let mut next = DiffSummary::default();
+        for record in status.stdout.split(|byte| *byte == 0) {
+            if record.len() < 4 || record[2] != b' ' {
+                continue;
+            }
+            next.files += 1;
+            if &record[..2] == b"??" {
+                next.hunks += 1;
+                let relative = String::from_utf8_lossy(&record[3..]);
+                if let Ok(contents) = fs::read_to_string(self.root.join(relative.as_ref())) {
+                    next.additions += contents.lines().count().max(1);
+                }
+            }
+        }
+        if let Ok(diff) = diff
+            && diff.status.success()
+        {
+            for line in String::from_utf8_lossy(&diff.stdout).lines() {
+                if line.starts_with("@@") {
+                    next.hunks += 1;
+                } else if line.starts_with('+') && !line.starts_with("+++") {
+                    next.additions += 1;
+                } else if line.starts_with('-') && !line.starts_with("---") {
+                    next.deletions += 1;
+                }
+            }
+        }
+
+        if self.diff_summary == next {
+            false
+        } else {
+            self.diff_summary = next;
+            true
+        }
+    }
+
+    fn open_hunk(&mut self) {
+        if !self.git_enabled {
+            self.message = "Diff review requires a Git workspace".into();
+            return;
+        }
+        if !Command::new("hunk")
+            .arg("--version")
+            .output()
+            .is_ok_and(|output| output.status.success())
+        {
+            self.message = "Hunk is not installed; see https://hunk.dev/docs/start/install/".into();
+            return;
+        }
+
+        if env::var_os("TMUX").is_some() {
+            match Command::new("tmux")
+                .args(["new-window", "-n", "diff", "-c"])
+                .arg(&self.root)
+                .arg("exec hunk diff --watch")
+                .status()
+            {
+                Ok(status) if status.success() => {
+                    self.message = "Opened live Hunk review in tmux window: diff".into();
+                }
+                Ok(status) => self.message = format!("Could not open Hunk (tmux status {status})"),
+                Err(error) => self.message = format!("Could not open Hunk: {error}"),
+            }
+        } else {
+            self.launch_hunk_foreground = true;
+        }
+    }
+
     fn watch_open_files(&mut self) -> bool {
         let mut changed = self.poll_lsp();
         if self.last_tree_refresh.elapsed() >= Duration::from_secs(2) {
@@ -783,6 +899,7 @@ impl App {
         }
         if self.last_git_refresh.elapsed() >= Duration::from_secs(5) {
             changed |= self.refresh_git_status();
+            changed |= self.refresh_diff_summary();
         }
         if self.last_watch.elapsed() < Duration::from_millis(600) {
             return changed;
@@ -1443,6 +1560,10 @@ fn handle_key(app: &mut App, key: KeyEvent) {
                 app.start_quick_open();
                 return;
             }
+            KeyCode::Char('d') => {
+                app.open_hunk();
+                return;
+            }
             KeyCode::Char(' ') if app.focus == Focus::Editor => {
                 app.request_completion();
                 return;
@@ -1510,7 +1631,8 @@ fn handle_key(app: &mut App, key: KeyEvent) {
     if key.code == KeyCode::F(5) {
         app.refresh_tree();
         app.refresh_git_status();
-        app.message = "Explorer and Git status refreshed".into();
+        app.refresh_diff_summary();
+        app.message = "Explorer, Git status, and diff summary refreshed".into();
         return;
     }
 
@@ -1648,7 +1770,7 @@ fn handle_mouse(app: &mut App, mouse: MouseEvent, width: u16, height: u16) {
         return;
     }
 
-    if !contains(main[1], mouse.column, mouse.row) || app.tabs.is_empty() {
+    if !contains(main[1], mouse.column, mouse.row) {
         return;
     }
     let inner = Rect::new(
@@ -1657,6 +1779,18 @@ fn handle_mouse(app: &mut App, mouse: MouseEvent, width: u16, height: u16) {
         main[1].width.saturating_sub(2),
         main[1].height.saturating_sub(2),
     );
+    let diff_width = app.diff_summary.label().width().min(inner.width as usize) as u16;
+    if mouse.kind == MouseEventKind::Down(MouseButton::Left)
+        && mouse.row == inner.y
+        && mouse.column >= inner.right().saturating_sub(diff_width)
+    {
+        app.open_hunk();
+        return;
+    }
+    if app.tabs.is_empty() {
+        return;
+    }
+
     match mouse.kind {
         MouseEventKind::ScrollLeft => {
             let editor = &mut app.tabs[app.active];
@@ -2055,24 +2189,45 @@ fn draw_editor(app: &mut App, frame: &mut Frame, area: Rect) {
     let inner = block.inner(area);
     frame.render_widget(block, area);
 
+    let editor_parts = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([Constraint::Length(1), Constraint::Min(1)])
+        .split(inner);
+    let diff_label = app.diff_summary.label();
+    let header_parts = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([
+            Constraint::Min(1),
+            Constraint::Length(diff_label.width().min(inner.width as usize) as u16),
+        ])
+        .split(editor_parts[0]);
+    let diff_style = if app.diff_summary.files == 0 {
+        Style::default().fg(Color::DarkGray)
+    } else {
+        Style::default()
+            .fg(Color::Black)
+            .bg(Color::Yellow)
+            .add_modifier(Modifier::BOLD)
+    };
+    frame.render_widget(
+        Paragraph::new(diff_label).style(diff_style),
+        header_parts[1],
+    );
+
     if app.tabs.is_empty() {
         let welcome = Text::from(vec![
             Line::from("TIDE"),
             Line::from(""),
             Line::from("Select a file in Explorer and press Enter."),
-            Line::from("Ctrl+E switches focus."),
+            Line::from("Click Δ DIFF or press Ctrl+D to review changes with Hunk."),
         ]);
         frame.render_widget(
             Paragraph::new(welcome).style(Style::default().fg(Color::DarkGray)),
-            inner,
+            editor_parts[1],
         );
         return;
     }
 
-    let editor_parts = Layout::default()
-        .direction(Direction::Vertical)
-        .constraints([Constraint::Length(1), Constraint::Min(1)])
-        .split(inner);
     let tab_titles: Vec<Line> = app
         .tabs
         .iter()
@@ -2087,7 +2242,7 @@ fn draw_editor(app: &mut App, frame: &mut Frame, area: Rect) {
         )
         .style(Style::default().fg(Color::DarkGray))
         .divider("│");
-    frame.render_widget(tabs, editor_parts[0]);
+    frame.render_widget(tabs, header_parts[0]);
 
     let text_area = editor_parts[1];
     let syntax_set = &app.syntax_set;
@@ -2306,6 +2461,33 @@ fn draw_visual_preview(frame: &mut Frame, area: Rect, image: &DynamicImage) {
     frame.render_widget(Paragraph::new(lines), area);
 }
 
+fn run_hunk_foreground(
+    terminal: &mut Terminal<CrosstermBackend<io::Stdout>>,
+    root: &Path,
+) -> io::Result<std::process::ExitStatus> {
+    disable_raw_mode()?;
+    execute!(
+        terminal.backend_mut(),
+        DisableMouseCapture,
+        LeaveAlternateScreen
+    )?;
+    terminal.show_cursor()?;
+
+    let result = Command::new("hunk")
+        .args(["diff", "--watch"])
+        .current_dir(root)
+        .status();
+
+    enable_raw_mode()?;
+    execute!(
+        terminal.backend_mut(),
+        EnterAlternateScreen,
+        EnableMouseCapture
+    )?;
+    terminal.clear()?;
+    result
+}
+
 fn run() -> io::Result<()> {
     let root = env::args()
         .nth(1)
@@ -2384,6 +2566,18 @@ fn run() -> io::Result<()> {
                     }
                     _ => {}
                 }
+            }
+            if std::mem::take(&mut app.launch_hunk_foreground) {
+                match run_hunk_foreground(&mut terminal, &app.root) {
+                    Ok(status) if status.success() => {
+                        app.message = "Closed Hunk review".into();
+                    }
+                    Ok(status) => app.message = format!("Hunk exited with {status}"),
+                    Err(error) => app.message = format!("Could not run Hunk: {error}"),
+                }
+                app.refresh_git_status();
+                app.refresh_diff_summary();
+                needs_redraw = true;
             }
         }
         Ok(())
