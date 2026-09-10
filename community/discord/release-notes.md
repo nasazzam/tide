@@ -1,19 +1,20 @@
-# Copy-ready v0.4.1 release post
+# Copy-ready v0.4.2 release post
 
-> **TIDE v0.4.1 — home-row workspace controls**
+> **TIDE v0.4.2 — tmux 3.4 compatibility fix**
 >
-> TIDE's view controls now use one easy adjacent key row:
+> TIDE now uses tmux's portable percentage pane-sizing syntax. This fixes
+> workspace startup on tmux 3.4, where `tide pi -c` previously stopped with:
 >
-> • `Ctrl+Shift+A` — show or hide Explorer
-> • `Ctrl+Shift+S` — toggle Editor focus
-> • `Ctrl+Shift+D` — open live Hunk Diff
-> • `Ctrl+Shift+F` — toggle Agent focus
-> • `Ctrl+Shift+G` — toggle Terminal focus
+> ```text
+> size missing
+> ```
 >
-> Press the Editor, Agent, or Terminal chord again to restore the complete
-> workspace. The bindings only activate in TIDE workspace windows and pass
-> through normally elsewhere.
+> Upgrade by running the installer again:
 >
-> Release: <https://github.com/nasazzam/tide/releases/tag/v0.4.1>
+> ```bash
+> curl -fsSL https://raw.githubusercontent.com/nasazzam/tide/main/install.sh | bash
+> ```
+>
+> Release: <https://github.com/nasazzam/tide/releases/tag/v0.4.2>
 
 Attach: `assets/tide-workspace.png`
