@@ -113,9 +113,6 @@ cd tide/packaging/arch
 makepkg -si
 ```
 
-> The repository is currently private, so GitHub authentication is required.
-> These commands work anonymously once the project is public.
-
 ### Homebrew
 
 The repository is a self-contained Homebrew tap for Intel and Apple Silicon
