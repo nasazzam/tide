@@ -2,7 +2,7 @@
 # TIDE workspace launcher for Linux, macOS, BSD, and Windows through WSL.
 set -euo pipefail
 
-readonly TIDE_VERSION="0.4.1"
+readonly TIDE_VERSION="0.4.2"
 
 usage() {
   cat <<'EOF'
@@ -268,16 +268,16 @@ else
 fi
 
 # Build the configured workspace while retaining the original pane for the editor.
-shell_pane=$(tmux split-window -v -p "$shell_size" -t "$workspace" -c "$project" -P -F '#{pane_id}')
+shell_pane=$(tmux split-window -v -l "${shell_size}%" -t "$workspace" -c "$project" -P -F '#{pane_id}')
 case "$layout" in
   classic)
-    agent_pane=$(tmux split-window -h -p "$agent_size" -t "$workspace" -c "$project" -P -F '#{pane_id}')
+    agent_pane=$(tmux split-window -h -l "${agent_size}%" -t "$workspace" -c "$project" -P -F '#{pane_id}')
     ;;
   agents-left)
-    agent_pane=$(tmux split-window -h -b -p "$agent_size" -t "$workspace" -c "$project" -P -F '#{pane_id}')
+    agent_pane=$(tmux split-window -h -b -l "${agent_size}%" -t "$workspace" -c "$project" -P -F '#{pane_id}')
     ;;
   agents-bottom)
-    agent_pane=$(tmux split-window -v -p "$agent_size" -t "$workspace" -c "$project" -P -F '#{pane_id}')
+    agent_pane=$(tmux split-window -v -l "${agent_size}%" -t "$workspace" -c "$project" -P -F '#{pane_id}')
     ;;
 esac
 # Label panes and expose their roles to TIDE's conditional function-key bindings.

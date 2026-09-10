@@ -5,6 +5,12 @@ All notable changes to TIDE will be documented here. This project follows
 
 ## [Unreleased]
 
+## [0.4.2] - 2026-09-10
+
+### Fixed
+
+- Use tmux's portable `-l <percentage>%` pane sizing syntax so workspace creation works on tmux 3.4 instead of failing with `size missing`.
+
 ## [0.4.1] - 2026-09-10
 
 ### Changed
@@ -45,7 +51,8 @@ All notable changes to TIDE will be documented here. This project follows
 - Linux, macOS, Windows, WSL, Arch, Omarchy, Homebrew, and Winget packaging.
 - Checksum-verifying release installer and cross-platform CI.
 
-[Unreleased]: https://github.com/nasazzam/tide/compare/v0.4.1...HEAD
+[Unreleased]: https://github.com/nasazzam/tide/compare/v0.4.2...HEAD
+[0.4.2]: https://github.com/nasazzam/tide/releases/tag/v0.4.2
 [0.4.1]: https://github.com/nasazzam/tide/releases/tag/v0.4.1
 [0.4.0]: https://github.com/nasazzam/tide/releases/tag/v0.4.0
 [0.3.0]: https://github.com/nasazzam/tide/releases/tag/v0.3.0

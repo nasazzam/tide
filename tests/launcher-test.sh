@@ -8,6 +8,14 @@ cat >"$tmp/tmux" <<'MOCK'
 #!/usr/bin/env bash
 printf '%q ' "$@" >>"$TIDE_TEST_LOG"
 printf '\n' >>"$TIDE_TEST_LOG"
+if [[ ${1:-} == split-window ]]; then
+  for argument in "$@"; do
+    if [[ $argument == -p ]]; then
+      echo "size missing" >&2
+      exit 1
+    fi
+  done
+fi
 case "${1:-}" in
   has-session) exit 1 ;;
   new-session) printf '%%root-pane\n' ;;
@@ -44,10 +52,10 @@ restore = true
 CONFIG
 : >"$TIDE_TEST_LOG"
 "$root/bin/tide" --project "$project" --no-attach pi >/dev/null
-grep -F 'split-window -v -p 20' "$TIDE_TEST_LOG" >/dev/null
-grep -F 'split-window -h -b -p 40' "$TIDE_TEST_LOG" >/dev/null
+grep -F 'split-window -v -l 20%' "$TIDE_TEST_LOG" >/dev/null
+grep -F 'split-window -h -b -l 40%' "$TIDE_TEST_LOG" >/dev/null
 "$root/bin/tide" --list-sessions | grep -F 'tide-restored' >/dev/null
 
-"$root/bin/tide" --version | grep -F 'tide 0.4.1' >/dev/null
+"$root/bin/tide" --version | grep -F 'tide 0.4.2' >/dev/null
 "$root/bin/tide" --help | grep -F 'agent1 [args...] :: agent2' >/dev/null
 printf 'launcher tests passed\n'
