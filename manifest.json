@@ -3,7 +3,7 @@
   "id": "org.tide.launcher",
   "name": "TIDE Launcher",
   "version": "0.2.0",
-  "author": "Nas Azzam",
+  "author": "nasazzam",
   "description": "Launch TIDE from the Omarchy bar",
   "kinds": [
     "bar-widget"

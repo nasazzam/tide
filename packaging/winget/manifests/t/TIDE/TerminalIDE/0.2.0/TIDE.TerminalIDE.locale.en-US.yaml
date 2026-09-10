@@ -1,7 +1,7 @@
 PackageIdentifier: TIDE.TerminalIDE
 PackageVersion: 0.2.0
 PackageLocale: en-US
-Publisher: Nas Azzam
+Publisher: nasazzam
 PackageName: TIDE
 PackageUrl: https://github.com/nasazzam/tide
 License: MIT
