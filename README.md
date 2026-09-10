@@ -96,14 +96,20 @@ TIDE then appears in the Omarchy application launcher. Open it there or run:
 omarchy launch or focus tui --app-id=org.tide.TIDE tide
 ```
 
-An optional Omarchy Shell bar widget is included in this repository. It adds a
-TIDE button to the bar:
+An optional [Omarchy Shell bar widget](https://github.com/nasazzam/tide-omarchy-plugin)
+adds a TIDE button to the bar:
 
 ```bash
-omarchy plugin add https://github.com/nasazzam/tide.git --enable
+omarchy plugin add https://github.com/nasazzam/tide-omarchy-plugin.git --enable
 ```
 
-Plugins execute inside `omarchy-shell`; review `manifest.json` and
+Remove the widget independently from TIDE with:
+
+```bash
+omarchy plugin remove io.github.nasazzam.tide-launcher
+```
+
+Plugins execute inside `omarchy-shell`; review the plugin's `manifest.json` and
 `TideWidget.qml` before enabling third-party code. The package can also be built
 locally with Arch's package tools:
 
