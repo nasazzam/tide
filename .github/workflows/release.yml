@@ -39,7 +39,7 @@ jobs:
           else
             shasum -a 256 "$archive" > "$archive.sha256"
           fi
-      - uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v3
         with:
           files: |
             tide-${{ github.ref_name }}-${{ matrix.target }}.tar.gz
@@ -60,7 +60,7 @@ jobs:
           Compress-Archive staging/* $archive
           $hash = (Get-FileHash $archive -Algorithm SHA256).Hash.ToLower()
           "$hash  $archive" | Set-Content "$archive.sha256"
-      - uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v3
         with:
           files: |
             tide-${{ github.ref_name }}-x86_64-pc-windows-msvc.zip
