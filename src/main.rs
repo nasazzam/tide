@@ -585,7 +585,7 @@ impl App {
             active: 0,
             focus: Focus::Explorer,
             message: format!(
-                "Mouse · F6–F9 views · Ctrl+E switch · Ctrl+D diff · Ctrl+S save · Ctrl+Q quit{lsp_message}"
+                "Mouse · Ctrl+Shift+A/S/D/F/G views · Ctrl+E switch · Ctrl+S save · Ctrl+Q quit{lsp_message}"
             ),
             quit: false,
             last_watch: Instant::now(),
@@ -1554,16 +1554,40 @@ fn handle_key(app: &mut App, key: KeyEvent) {
         return;
     }
     let ctrl = key.modifiers.contains(KeyModifiers::CONTROL);
+    let shift = key.modifiers.contains(KeyModifiers::SHIFT);
     let alt = key.modifiers.contains(KeyModifiers::ALT);
+
+    if ctrl && shift {
+        match key.code {
+            KeyCode::Char('a' | 'A') => {
+                app.explorer_visible = !app.explorer_visible;
+                if !app.explorer_visible && app.focus == Focus::Explorer {
+                    app.focus = Focus::Editor;
+                }
+                app.message = if app.explorer_visible {
+                    "Explorer shown"
+                } else {
+                    "Explorer hidden · Ctrl+Shift+A restores it"
+                }
+                .into();
+                return;
+            }
+            KeyCode::Char('d' | 'D') => {
+                app.open_hunk();
+                return;
+            }
+            KeyCode::Char('s' | 'S' | 'f' | 'F' | 'g' | 'G') if env::var_os("TMUX").is_none() => {
+                app.message = "Editor, Agent, and Terminal focus require the tmux workspace".into();
+                return;
+            }
+            _ => {}
+        }
+    }
 
     if ctrl {
         match key.code {
             KeyCode::Char('p') => {
                 app.start_quick_open();
-                return;
-            }
-            KeyCode::Char('d') => {
-                app.open_hunk();
                 return;
             }
             KeyCode::Char(' ') if app.focus == Focus::Editor => {
@@ -1637,24 +1661,6 @@ fn handle_key(app: &mut App, key: KeyEvent) {
         app.message = "Explorer, Git status, and diff summary refreshed".into();
         return;
     }
-    if key.code == KeyCode::F(6) {
-        app.explorer_visible = !app.explorer_visible;
-        if !app.explorer_visible && app.focus == Focus::Explorer {
-            app.focus = Focus::Editor;
-        }
-        app.message = if app.explorer_visible {
-            "Explorer shown"
-        } else {
-            "Explorer hidden · F6 restores it"
-        }
-        .into();
-        return;
-    }
-    if matches!(key.code, KeyCode::F(7..=9)) && env::var_os("TMUX").is_none() {
-        app.message = "F7–F9 pane focus requires the full tmux workspace".into();
-        return;
-    }
-
     match app.focus {
         Focus::Explorer => match key.code {
             KeyCode::Up | KeyCode::Char('k') => app.move_selection(-1),
@@ -2250,7 +2256,7 @@ fn draw_editor(app: &mut App, frame: &mut Frame, area: Rect) {
             Line::from("TIDE"),
             Line::from(""),
             Line::from("Select a file in Explorer and press Enter."),
-            Line::from("Click Δ DIFF or press Ctrl+D to review changes with Hunk."),
+            Line::from("Click Δ DIFF or press Ctrl+Shift+D to review with Hunk."),
         ]);
         frame.render_widget(
             Paragraph::new(welcome).style(Style::default().fg(Color::DarkGray)),

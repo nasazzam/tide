@@ -36,6 +36,6 @@
 > Source, documentation, and releases:
 > <https://github.com/nasazzam/tide>
 >
-> MIT licensed · Current release: v0.4.0
+> MIT licensed · Current release: v0.4.1
 
 Attach: `assets/tide-banner.png`

@@ -40,17 +40,19 @@ or [project configuration](../README.md#project-configuration).
 
 ### Fast workspace toggles
 
-TIDE reserves four adjacent function keys for distraction-free navigation:
+TIDE uses adjacent home-row chords for distraction-free navigation:
 
-- <kbd>F6</kbd> shows or hides the Explorer sidebar.
-- <kbd>F7</kbd> focuses and expands the Editor pane.
-- <kbd>F8</kbd> focuses and expands the current or first Agent pane.
-- <kbd>F9</kbd> focuses and expands the project Terminal pane.
+- <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>A</kbd> shows or hides Explorer.
+- <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd> focuses and expands Editor.
+- <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>D</kbd> opens the live Diff review.
+- <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F</kbd> focuses and expands Agent.
+- <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>G</kbd> focuses and expands Terminal.
 
-Press <kbd>F7</kbd>, <kbd>F8</kbd>, or <kbd>F9</kbd> again to restore the complete
+Press the Editor, Agent, or Terminal chord again to restore the complete
 workspace. Switching directly from one focused pane to another also works. The
 bindings are conditional: outside a TIDE workspace window, tmux passes these
-function keys through normally.
+chords through normally. A terminal with extended-key support is required to
+distinguish Ctrl+Shift from Ctrl; TIDE enables tmux's extended-key handling.
 
 ## Quick Open and project search
 
@@ -76,7 +78,7 @@ diff hunks, additions, and deletions.
 
 The **Δ DIFF** control at the top-right of the editor opens the current
 changeset in [Hunk](https://hunk.dev), a review-first terminal diff viewer built
-for agent-authored changes. Click it or press <kbd>Ctrl</kbd>+<kbd>D</kbd> to open
+for agent-authored changes. Click it or press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>D</kbd> to open
 a live `hunk diff --watch` review. Hunk reloads while an agent edits files and
 supports multi-file review, split or unified layouts, hunk navigation, and
 inline agent annotations.

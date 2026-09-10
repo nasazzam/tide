@@ -2,7 +2,7 @@
 
 - **Name:** TIDE Launcher
 - **Plugin ID:** `org.tide.launcher`
-- **Version:** `0.4.0`
+- **Version:** `0.4.1`
 - **Kind:** `bar-widget`
 - **Author:** nasazzam
 - **License:** MIT

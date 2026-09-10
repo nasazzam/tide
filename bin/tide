@@ -2,7 +2,7 @@
 # TIDE workspace launcher for Linux, macOS, BSD, and Windows through WSL.
 set -euo pipefail
 
-readonly TIDE_VERSION="0.4.0"
+readonly TIDE_VERSION="0.4.1"
 
 usage() {
   cat <<'EOF'
@@ -178,6 +178,8 @@ while (( $# )); do
 done
 
 command -v tmux >/dev/null 2>&1 || fail "tmux is required (on Windows, run TIDE inside WSL)"
+# Distinguish Ctrl+Shift home-row chords from their traditional Ctrl-only bytes.
+tmux set-option -s extended-keys on
 if (( list_sessions )); then
   tmux list-sessions -F '#{session_name}\t#{@tide_project}\t#{session_attached}' 2>/dev/null \
     | awk -F '\t' '$1 ~ /^tide-/ || $2 != "" { printf "%-32s  %s%s\n", $1, ($2 == "" ? "unknown project" : $2), ($3 > 0 ? "  [attached]" : "") }'
@@ -302,15 +304,17 @@ tmux set-option -w -t "$workspace" @tide_editor_pane "$workspace"
 tmux set-option -w -t "$workspace" @tide_agent_pane "$primary_agent_pane"
 tmux set-option -w -t "$workspace" @tide_terminal_pane "$shell_pane"
 
-# These bindings only act in a TIDE window; elsewhere they pass the function key through.
-tmux bind-key -n F6 if-shell -F '#{!=:#{@tide_editor_pane},}' \
-  'send-keys -t "#{@tide_editor_pane}" F6' 'send-keys F6'
-tmux bind-key -n F7 if-shell -F '#{!=:#{@tide_editor_pane},}' \
-  'run-shell "tide --_toggle-pane editor #{pane_id}"' 'send-keys F7'
-tmux bind-key -n F8 if-shell -F '#{!=:#{@tide_agent_pane},}' \
-  'run-shell "tide --_toggle-pane agent #{pane_id}"' 'send-keys F8'
-tmux bind-key -n F9 if-shell -F '#{!=:#{@tide_terminal_pane},}' \
-  'run-shell "tide --_toggle-pane terminal #{pane_id}"' 'send-keys F9'
+# Home-row bindings only act in a TIDE window; elsewhere tmux passes them through.
+tmux bind-key -n C-S-a if-shell -F '#{!=:#{@tide_editor_pane},}' \
+  'send-keys -t "#{@tide_editor_pane}" C-S-a' 'send-keys C-S-a'
+tmux bind-key -n C-S-s if-shell -F '#{!=:#{@tide_editor_pane},}' \
+  'run-shell "tide --_toggle-pane editor #{pane_id}"' 'send-keys C-S-s'
+tmux bind-key -n C-S-d if-shell -F '#{!=:#{@tide_editor_pane},}' \
+  'send-keys -t "#{@tide_editor_pane}" C-S-d' 'send-keys C-S-d'
+tmux bind-key -n C-S-f if-shell -F '#{!=:#{@tide_agent_pane},}' \
+  'run-shell "tide --_toggle-pane agent #{pane_id}"' 'send-keys C-S-f'
+tmux bind-key -n C-S-g if-shell -F '#{!=:#{@tide_terminal_pane},}' \
+  'run-shell "tide --_toggle-pane terminal #{pane_id}"' 'send-keys C-S-g'
 
 editor_command=$(command_string env "TIDE_IMAGE_PROTOCOL=$protocol" tide-editor "$project")
 tmux send-keys -t "$workspace" -l "$editor_command"

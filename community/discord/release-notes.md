@@ -1,20 +1,19 @@
-# Copy-ready v0.4.0 release post
+# Copy-ready v0.4.1 release post
 
-> **TIDE v0.4.0 — instant workspace focus**
+> **TIDE v0.4.1 — home-row workspace controls**
 >
-> Move between focused workspace views using four adjacent keys:
+> TIDE's view controls now use one easy adjacent key row:
 >
-> • `F6` — show or hide Explorer
-> • `F7` — toggle Editor focus
-> • `F8` — toggle Agent focus
-> • `F9` — toggle Terminal focus
+> • `Ctrl+Shift+A` — show or hide Explorer
+> • `Ctrl+Shift+S` — toggle Editor focus
+> • `Ctrl+Shift+D` — open live Hunk Diff
+> • `Ctrl+Shift+F` — toggle Agent focus
+> • `Ctrl+Shift+G` — toggle Terminal focus
 >
-> Press `F7`, `F8`, or `F9` again to restore the complete workspace, or switch
-> directly between focused panes. The bindings only activate in TIDE workspace
-> windows and pass through normally elsewhere.
+> Press the Editor, Agent, or Terminal chord again to restore the complete
+> workspace. The bindings only activate in TIDE workspace windows and pass
+> through normally elsewhere.
 >
-> TIDE also includes the new live **Δ DIFF** Hunk review from v0.3.0.
->
-> Release: <https://github.com/nasazzam/tide/releases/tag/v0.4.0>
+> Release: <https://github.com/nasazzam/tide/releases/tag/v0.4.1>
 
 Attach: `assets/tide-workspace.png`

@@ -5,6 +5,13 @@ All notable changes to TIDE will be documented here. This project follows
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-09-10
+
+### Changed
+
+- Replaced the F6–F9 view controls with adjacent Ctrl+Shift+A/S/D/F/G home-row
+  chords for Explorer, Editor, Diff, Agent, and Terminal.
+
 ## [0.4.0] - 2026-09-10
 
 ### Added
@@ -38,7 +45,8 @@ All notable changes to TIDE will be documented here. This project follows
 - Linux, macOS, Windows, WSL, Arch, Omarchy, Homebrew, and Winget packaging.
 - Checksum-verifying release installer and cross-platform CI.
 
-[Unreleased]: https://github.com/nasazzam/tide/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/nasazzam/tide/compare/v0.4.1...HEAD
+[0.4.1]: https://github.com/nasazzam/tide/releases/tag/v0.4.1
 [0.4.0]: https://github.com/nasazzam/tide/releases/tag/v0.4.0
 [0.3.0]: https://github.com/nasazzam/tide/releases/tag/v0.3.0
 [0.2.0]: https://github.com/nasazzam/tide/releases/tag/v0.2.0

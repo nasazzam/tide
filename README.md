@@ -319,7 +319,7 @@ Detailed feature documentation is available in the
 |---|---|
 | <kbd>Ctrl</kbd>+<kbd>E</kbd> | Switch Explorer / Editor focus |
 | <kbd>Ctrl</kbd>+<kbd>P</kbd> | Quick Open; start with `%` for content search |
-| <kbd>Ctrl</kbd>+<kbd>D</kbd> | Open a live Hunk diff review |
+| <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>D</kbd> | Open a live Hunk diff review |
 | <kbd>Ctrl</kbd>+<kbd>S</kbd> | Save |
 | <kbd>Ctrl</kbd>+<kbd>Q</kbd> | Quit safely |
 | <kbd>Ctrl</kbd>+<kbd>W</kbd> | Close active file |
@@ -327,10 +327,10 @@ Detailed feature documentation is available in the
 | <kbd>Alt</kbd>+<kbd>1…9</kbd> | Switch tabs |
 | <kbd>Ctrl</kbd>+<kbd>Space</kbd> | Request LSP completion |
 | <kbd>F5</kbd> | Refresh project and Git state |
-| <kbd>F6</kbd> | Show / hide Explorer |
-| <kbd>F7</kbd> | Toggle focused Editor view |
-| <kbd>F8</kbd> | Toggle focused Agent view |
-| <kbd>F9</kbd> | Toggle focused Terminal view |
+| <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>A</kbd> | Show / hide Explorer |
+| <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd> | Toggle focused Editor view |
+| <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F</kbd> | Toggle focused Agent view |
+| <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>G</kbd> | Toggle focused Terminal view |
 
 ### Editor and Explorer
 
