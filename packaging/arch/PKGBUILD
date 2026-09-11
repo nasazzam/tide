@@ -16,7 +16,7 @@ optdepends=(
   'ffmpegthumbnailer: video previews'
 )
 source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz")
-sha256sums=('SKIP')
+sha256sums=('9a58b8dd77be4005bd028d1949072b469d82c3ba883e92b5c982f23a9c18ee26')
 
 prepare() {
   cd "tide-$pkgver"
