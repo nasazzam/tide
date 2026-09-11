@@ -5,6 +5,13 @@ All notable changes to TIDE will be documented here. This project follows
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-09-11
+
+### Fixed
+
+- Clear the editor pane before replacing its shell so the internal `env TIDE_IMAGE_PROTOCOL=… tide-editor …` command does not remain visible above the TUI.
+- Document terminal-native Shift+drag selection and clipboard copying consistently across Explorer, Editor, Agent, and Terminal panes.
+
 ## [0.5.0] - 2026-09-11
 
 ### Added
@@ -81,7 +88,8 @@ All notable changes to TIDE will be documented here. This project follows
 - Linux, macOS, Windows, WSL, Arch, Omarchy, Homebrew, and Winget packaging.
 - Checksum-verifying release installer and cross-platform CI.
 
-[Unreleased]: https://github.com/nasazzam/tide/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/nasazzam/tide/compare/v0.5.1...HEAD
+[0.5.1]: https://github.com/nasazzam/tide/releases/tag/v0.5.1
 [0.5.0]: https://github.com/nasazzam/tide/releases/tag/v0.5.0
 [0.4.4]: https://github.com/nasazzam/tide/releases/tag/v0.4.4
 [0.4.3]: https://github.com/nasazzam/tide/releases/tag/v0.4.3

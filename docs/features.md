@@ -26,7 +26,7 @@ open files with a click. The tree refreshes without restarting TIDE.
 
 ## Native editor
 
-Open multiple tabs with language-aware syntax highlighting, mouse selection,
+Open multiple tabs with language-aware syntax highlighting, mouse navigation,
 undo and redo, familiar navigation keys, safe saving, and a read-only hex view
 for unknown binary formats. Files up to 50 MiB can be opened. Horizontal wheel
 events, Shift+wheel, and Shift+Left/Right move the viewport without snapping
@@ -37,6 +37,12 @@ back to the cursor; the scrollbar tracks the complete document width.
 TIDE launches any CLI command in a dedicated tmux pane. Use one agent, split the
 available area between multiple agents with `::`, or leave the pane empty. Agent
 arguments and session flags are preserved exactly.
+
+TUI mouse capture reserves ordinary clicks and drags for TIDE, tmux, and the
+agent. To copy text from Explorer, Editor, Agent, or Terminal, hold
+<kbd>Shift</kbd> while dragging, then press
+<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>C</kbd>. This uses the terminal's native
+selection and clipboard consistently across panes.
 
 Workspace layouts and pane sizes can be selected through command-line options
 or [project configuration](../README.md#project-configuration).

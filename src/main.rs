@@ -618,7 +618,7 @@ impl App {
             active: 0,
             focus: Focus::Explorer,
             message: format!(
-                "Mouse · Ctrl+Shift+A/S/D/F/G views · Ctrl+E switch · Ctrl+S save · Ctrl+Q quit{lsp_message}"
+                "Mouse · Shift+drag copy · Ctrl+Shift+A/S/D/F/G views · Ctrl+E switch · Ctrl+S save · Ctrl+Q quit{lsp_message}"
             ),
             quit: false,
             last_watch: Instant::now(),

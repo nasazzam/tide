@@ -2,7 +2,7 @@
 # TIDE workspace launcher for Linux, macOS, BSD, and Windows through WSL.
 set -euo pipefail
 
-readonly TIDE_VERSION="0.5.0"
+readonly TIDE_VERSION="0.5.1"
 
 usage() {
   cat <<'EOF'
@@ -434,7 +434,9 @@ tmux bind-key -n C-S-g if-shell -F '#{!=:#{@tide_terminal_pane},}' \
   'run-shell "tide --_toggle-pane terminal #{pane_id}"' 'send-keys C-S-g'
 
 editor_command=$(command_string env "TIDE_IMAGE_PROTOCOL=$protocol" tide-editor "$project")
-tmux send-keys -t "$workspace" -l "$editor_command"
+# Clear the shell screen and replace it with the editor so the internal launch command
+# does not remain visible above the TUI or return to the prompt when the editor exits.
+tmux send-keys -t "$workspace" -l "clear; exec $editor_command"
 tmux send-keys -t "$workspace" C-m
 tmux select-pane -t "$workspace"
 

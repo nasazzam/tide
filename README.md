@@ -342,7 +342,7 @@ Detailed feature documentation is available in the
 | Explorer | `Ctrl+H` toggles hidden files; `[` and `]` scroll deep trees |
 | Explorer | `n` new file, `N` new directory, `r` rename, `m` move, `d` delete |
 | Quick Open | Up/Down selects, Enter opens, Escape closes |
-| Mouse | Select text, scroll vertically or horizontally, open files, switch and close tabs, open Preview or Δ DIFF |
+| Mouse | Click and scroll normally; hold <kbd>Shift</kbd> while dragging to select terminal text, then use <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>C</kbd> to copy |
 
 ## Development
 
