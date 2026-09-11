@@ -25,6 +25,7 @@ use ratatui::{
     text::{Line, Span, Text},
     widgets::{
         Block, Borders, Clear, Paragraph, Scrollbar, ScrollbarOrientation, ScrollbarState, Tabs,
+        Wrap,
     },
 };
 use ratatui_image::{
@@ -229,6 +230,9 @@ struct Editor {
     col: usize,
     scroll_y: usize,
     scroll_x: usize,
+    manual_scroll_x: bool,
+    markdown_preview: bool,
+    preview_scroll_y: u16,
     dirty: bool,
     disk_text: String,
     externally_changed: HashSet<usize>,
@@ -254,6 +258,9 @@ impl Editor {
             col: 0,
             scroll_y: 0,
             scroll_x: 0,
+            manual_scroll_x: false,
+            markdown_preview: false,
+            preview_scroll_y: 0,
             dirty: false,
             disk_text: content,
             externally_changed: HashSet::new(),
@@ -280,6 +287,32 @@ impl Editor {
 
     fn line_len(&self) -> usize {
         self.lines[self.row].chars().count()
+    }
+
+    fn is_markdown(&self) -> bool {
+        self.path
+            .extension()
+            .and_then(|extension| extension.to_str())
+            .is_some_and(|extension| {
+                matches!(
+                    extension.to_ascii_lowercase().as_str(),
+                    "md" | "markdown" | "mdown"
+                )
+            })
+    }
+
+    fn scroll_horizontal(&mut self, amount: isize) {
+        self.manual_scroll_x = true;
+        let longest = self
+            .lines
+            .iter()
+            .map(|line| line.chars().count())
+            .max()
+            .unwrap_or(0);
+        self.scroll_x = self
+            .scroll_x
+            .saturating_add_signed(amount)
+            .min(longest.saturating_sub(1));
     }
 
     fn tab_label(&self) -> String {
@@ -615,6 +648,28 @@ impl App {
         self.tree_cache.clone()
     }
 
+    fn scroll_explorer_horizontal(&mut self, amount: isize) {
+        let widest = self
+            .tree_cache
+            .iter()
+            .map(|row| {
+                row.depth * 2
+                    + 4
+                    + row
+                        .path
+                        .file_name()
+                        .unwrap_or_default()
+                        .to_string_lossy()
+                        .width()
+            })
+            .max()
+            .unwrap_or(0);
+        self.explorer_scroll_x = self
+            .explorer_scroll_x
+            .saturating_add_signed(amount)
+            .min(widest.saturating_sub(1));
+    }
+
     fn refresh_tree(&mut self) -> bool {
         self.last_tree_refresh = Instant::now();
         let rows = tree_rows(&self.root, &self.expanded, self.show_hidden);
@@ -862,6 +917,26 @@ impl App {
         }
     }
 
+    fn toggle_markdown_preview(&mut self) {
+        let Some(editor) = self.tabs.get_mut(self.active) else {
+            self.message = "Open a Markdown file to use Preview".into();
+            return;
+        };
+        if !editor.is_markdown() {
+            self.message = "Preview is available for .md and .markdown files".into();
+            return;
+        }
+        editor.markdown_preview = !editor.markdown_preview;
+        editor.preview_scroll_y = 0;
+        self.focus = Focus::Editor;
+        self.message = if editor.markdown_preview {
+            "Markdown Preview · Alt+P returns to editing"
+        } else {
+            "Markdown editing"
+        }
+        .into();
+    }
+
     fn open_hunk(&mut self) {
         if !self.git_enabled {
             self.message = "Diff review requires a Git workspace".into();
@@ -1010,6 +1085,10 @@ impl App {
         let Some(editor) = self.tabs.get(self.active) else {
             return;
         };
+        if editor.markdown_preview {
+            self.message = "Switch to Markdown editing before requesting completion".into();
+            return;
+        }
         let Some(lsp) = self.lsp.as_mut() else {
             self.message = "No language server configured; set lsp.command in .tide.toml".into();
             return;
@@ -1560,6 +1639,11 @@ fn handle_key(app: &mut App, key: KeyEvent) {
     let shift = key.modifiers.contains(KeyModifiers::SHIFT);
     let alt = key.modifiers.contains(KeyModifiers::ALT);
 
+    if alt && matches!(key.code, KeyCode::Char('p' | 'P')) {
+        app.toggle_markdown_preview();
+        return;
+    }
+
     if ctrl && shift {
         match key.code {
             KeyCode::Char('a' | 'A') => {
@@ -1676,15 +1760,15 @@ fn handle_key(app: &mut App, key: KeyEvent) {
             KeyCode::Up | KeyCode::Char('k') => app.move_selection(-1),
             KeyCode::Down | KeyCode::Char('j') => app.move_selection(1),
             KeyCode::Left if key.modifiers.contains(KeyModifiers::SHIFT) => {
-                app.explorer_scroll_x = app.explorer_scroll_x.saturating_sub(4)
+                app.scroll_explorer_horizontal(-4)
             }
             KeyCode::Right if key.modifiers.contains(KeyModifiers::SHIFT) => {
-                app.explorer_scroll_x = app.explorer_scroll_x.saturating_add(4)
+                app.scroll_explorer_horizontal(4)
             }
             KeyCode::Enter | KeyCode::Right | KeyCode::Char('l') => app.activate_selection(),
             KeyCode::Left | KeyCode::Backspace | KeyCode::Char('h') => app.collapse_or_parent(),
-            KeyCode::Char('[') => app.explorer_scroll_x = app.explorer_scroll_x.saturating_sub(4),
-            KeyCode::Char(']') => app.explorer_scroll_x = app.explorer_scroll_x.saturating_add(4),
+            KeyCode::Char('[') => app.scroll_explorer_horizontal(-4),
+            KeyCode::Char(']') => app.scroll_explorer_horizontal(4),
             KeyCode::Char('n') => app.start_file_action(FileAction::CreateFile),
             KeyCode::Char('N') => app.start_file_action(FileAction::CreateDirectory),
             KeyCode::Char('r') => app.start_file_action(FileAction::Rename),
@@ -1698,18 +1782,40 @@ fn handle_key(app: &mut App, key: KeyEvent) {
                 app.focus = Focus::Explorer;
                 return;
             };
+            if editor.markdown_preview {
+                match key.code {
+                    KeyCode::Up | KeyCode::Char('k') => {
+                        editor.preview_scroll_y = editor.preview_scroll_y.saturating_sub(1)
+                    }
+                    KeyCode::Down | KeyCode::Char('j') => {
+                        editor.preview_scroll_y = editor.preview_scroll_y.saturating_add(1)
+                    }
+                    KeyCode::PageUp => {
+                        editor.preview_scroll_y = editor.preview_scroll_y.saturating_sub(10)
+                    }
+                    KeyCode::PageDown | KeyCode::Char(' ') => {
+                        editor.preview_scroll_y = editor.preview_scroll_y.saturating_add(10)
+                    }
+                    KeyCode::Home => editor.preview_scroll_y = 0,
+                    KeyCode::Esc => editor.markdown_preview = false,
+                    _ => {}
+                }
+                return;
+            }
+            let horizontal_scroll = shift && matches!(key.code, KeyCode::Left | KeyCode::Right);
+            if !horizontal_scroll {
+                editor.manual_scroll_x = false;
+            }
             match key.code {
                 KeyCode::Char(ch) if !ctrl && !alt => editor.insert(ch),
                 KeyCode::Enter => editor.newline(),
                 KeyCode::Backspace => editor.backspace(),
                 KeyCode::Delete => editor.delete(),
                 KeyCode::Left if key.modifiers.contains(KeyModifiers::SHIFT) => {
-                    editor.scroll_x = editor.scroll_x.saturating_sub(4);
-                    editor.col = editor.col.min(editor.line_len());
+                    editor.scroll_horizontal(-4);
                 }
                 KeyCode::Right if key.modifiers.contains(KeyModifiers::SHIFT) => {
-                    editor.scroll_x = editor.scroll_x.saturating_add(4);
-                    editor.col = editor.scroll_x.min(editor.line_len());
+                    editor.scroll_horizontal(4);
                 }
                 KeyCode::Left => {
                     editor.col = editor.col.saturating_sub(1);
@@ -1767,17 +1873,13 @@ fn handle_mouse(app: &mut App, mouse: MouseEvent, width: u16, height: u16) {
 
     if app.explorer_visible && contains(main[0], mouse.column, mouse.row) {
         match mouse.kind {
-            MouseEventKind::ScrollLeft => {
-                app.explorer_scroll_x = app.explorer_scroll_x.saturating_sub(4);
-            }
-            MouseEventKind::ScrollRight => {
-                app.explorer_scroll_x = app.explorer_scroll_x.saturating_add(4);
-            }
+            MouseEventKind::ScrollLeft => app.scroll_explorer_horizontal(-4),
+            MouseEventKind::ScrollRight => app.scroll_explorer_horizontal(4),
             MouseEventKind::ScrollUp if mouse.modifiers.contains(KeyModifiers::SHIFT) => {
-                app.explorer_scroll_x = app.explorer_scroll_x.saturating_sub(4);
+                app.scroll_explorer_horizontal(-4)
             }
             MouseEventKind::ScrollDown if mouse.modifiers.contains(KeyModifiers::SHIFT) => {
-                app.explorer_scroll_x = app.explorer_scroll_x.saturating_add(4);
+                app.scroll_explorer_horizontal(4)
             }
             MouseEventKind::ScrollUp => app.move_selection(-3),
             MouseEventKind::ScrollDown => app.move_selection(3),
@@ -1820,15 +1922,26 @@ fn handle_mouse(app: &mut App, mouse: MouseEvent, width: u16, height: u16) {
         main[1].height.saturating_sub(2),
     );
     let diff_width = app.diff_summary.label().width().min(inner.width as usize) as u16;
+    let preview_width = app
+        .tabs
+        .get(app.active)
+        .filter(|editor| editor.is_markdown())
+        .map(|editor| if editor.markdown_preview { 8 } else { 11 })
+        .unwrap_or(0);
     if mouse.kind == MouseEventKind::Down(MouseButton::Left) {
         app.focus = Focus::Editor;
     }
-    if mouse.kind == MouseEventKind::Down(MouseButton::Left)
-        && mouse.row == inner.y
-        && mouse.column >= inner.right().saturating_sub(diff_width)
-    {
-        app.open_hunk();
-        return;
+    if mouse.kind == MouseEventKind::Down(MouseButton::Left) && mouse.row == inner.y {
+        let diff_start = inner.right().saturating_sub(diff_width);
+        let preview_start = diff_start.saturating_sub(preview_width);
+        if mouse.column >= diff_start {
+            app.open_hunk();
+            return;
+        }
+        if preview_width > 0 && mouse.column >= preview_start {
+            app.toggle_markdown_preview();
+            return;
+        }
     }
     if app.tabs.is_empty() {
         return;
@@ -1836,34 +1949,34 @@ fn handle_mouse(app: &mut App, mouse: MouseEvent, width: u16, height: u16) {
 
     match mouse.kind {
         MouseEventKind::ScrollLeft => {
-            let editor = &mut app.tabs[app.active];
-            editor.scroll_x = editor.scroll_x.saturating_sub(4);
-            editor.col = editor.col.min(editor.line_len());
+            app.tabs[app.active].scroll_horizontal(-4);
         }
         MouseEventKind::ScrollRight => {
-            let editor = &mut app.tabs[app.active];
-            editor.scroll_x = editor.scroll_x.saturating_add(4);
-            editor.col = editor.scroll_x.min(editor.line_len());
+            app.tabs[app.active].scroll_horizontal(4);
         }
         MouseEventKind::ScrollUp if mouse.modifiers.contains(KeyModifiers::SHIFT) => {
-            let editor = &mut app.tabs[app.active];
-            editor.scroll_x = editor.scroll_x.saturating_sub(4);
-            editor.col = editor.col.min(editor.line_len());
+            app.tabs[app.active].scroll_horizontal(-4);
         }
         MouseEventKind::ScrollDown if mouse.modifiers.contains(KeyModifiers::SHIFT) => {
-            let editor = &mut app.tabs[app.active];
-            editor.scroll_x = editor.scroll_x.saturating_add(4);
-            editor.col = editor.scroll_x.min(editor.line_len());
+            app.tabs[app.active].scroll_horizontal(4);
         }
         MouseEventKind::ScrollUp => {
             let editor = &mut app.tabs[app.active];
-            editor.row = editor.row.saturating_sub(3);
-            editor.col = editor.col.min(editor.line_len());
+            if editor.markdown_preview {
+                editor.preview_scroll_y = editor.preview_scroll_y.saturating_sub(3);
+            } else {
+                editor.row = editor.row.saturating_sub(3);
+                editor.col = editor.col.min(editor.line_len());
+            }
         }
         MouseEventKind::ScrollDown => {
             let editor = &mut app.tabs[app.active];
-            editor.row = (editor.row + 3).min(editor.lines.len() - 1);
-            editor.col = editor.col.min(editor.line_len());
+            if editor.markdown_preview {
+                editor.preview_scroll_y = editor.preview_scroll_y.saturating_add(3);
+            } else {
+                editor.row = (editor.row + 3).min(editor.lines.len() - 1);
+                editor.col = editor.col.min(editor.line_len());
+            }
         }
         MouseEventKind::Down(MouseButton::Left) => {
             app.focus = Focus::Editor;
@@ -1888,6 +2001,10 @@ fn handle_mouse(app: &mut App, mouse: MouseEvent, width: u16, height: u16) {
             let text_y = inner.y + 1;
             if mouse.row >= text_y && mouse.row < inner.bottom() {
                 let editor = &mut app.tabs[app.active];
+                if editor.markdown_preview {
+                    return;
+                }
+                editor.manual_scroll_x = false;
                 let number_width = editor.lines.len().to_string().len().max(3);
                 let row = editor.scroll_y + (mouse.row - text_y) as usize;
                 if row < editor.lines.len() {
@@ -2106,7 +2223,7 @@ fn draw_quick_open(app: &App, frame: &mut Frame) {
     frame.set_cursor_position((cursor_x, parts[0].y));
 }
 
-fn draw_explorer(app: &App, frame: &mut Frame, area: Rect) {
+fn draw_explorer(app: &mut App, frame: &mut Frame, area: Rect) {
     let focused = app.focus == Focus::Explorer;
     let border = if focused {
         Color::Cyan
@@ -2133,6 +2250,23 @@ fn draw_explorer(app: &App, frame: &mut Frame, area: Rect) {
         .unwrap_or(0);
     let height = inner.height as usize;
     let start = selected_index.saturating_sub(height.saturating_sub(1));
+    let widest = rows
+        .iter()
+        .map(|row| {
+            row.depth * 2
+                + 4
+                + row
+                    .path
+                    .file_name()
+                    .unwrap_or_default()
+                    .to_string_lossy()
+                    .width()
+        })
+        .max()
+        .unwrap_or(0);
+    app.explorer_scroll_x = app
+        .explorer_scroll_x
+        .min(widest.saturating_sub(inner.width as usize));
     let lines: Vec<Line> = rows
         .iter()
         .enumerate()
@@ -2185,20 +2319,6 @@ fn draw_explorer(app: &App, frame: &mut Frame, area: Rect) {
             &mut scrollbar,
         );
     }
-    let widest = rows
-        .iter()
-        .map(|row| {
-            row.depth * 2
-                + 4
-                + row
-                    .path
-                    .file_name()
-                    .unwrap_or_default()
-                    .to_string_lossy()
-                    .width()
-        })
-        .max()
-        .unwrap_or(0);
     if widest > inner.width as usize {
         let mut scrollbar = ScrollbarState::new(widest)
             .position(app.explorer_scroll_x)
@@ -2226,6 +2346,12 @@ fn draw_editor(app: &mut App, frame: &mut Frame, area: Rect) {
     } else if app
         .tabs
         .get(app.active)
+        .is_some_and(|editor| editor.markdown_preview)
+    {
+        " EDITOR · MARKDOWN PREVIEW ".to_string()
+    } else if app
+        .tabs
+        .get(app.active)
         .is_some_and(|editor| editor.visual.is_some())
     {
         format!(" EDITOR · {} MEDIA PREVIEW ", app.image_protocol_name)
@@ -2244,10 +2370,21 @@ fn draw_editor(app: &mut App, frame: &mut Frame, area: Rect) {
         .constraints([Constraint::Length(1), Constraint::Min(1)])
         .split(inner);
     let diff_label = app.diff_summary.label();
+    let preview_label = app.tabs.get(app.active).and_then(|editor| {
+        editor.is_markdown().then(|| {
+            if editor.markdown_preview {
+                " ✎ EDIT ".to_string()
+            } else {
+                " ◉ PREVIEW ".to_string()
+            }
+        })
+    });
+    let preview_width = preview_label.as_deref().map(str::width).unwrap_or(0);
     let header_parts = Layout::default()
         .direction(Direction::Horizontal)
         .constraints([
             Constraint::Min(1),
+            Constraint::Length(preview_width.min(inner.width as usize) as u16),
             Constraint::Length(diff_label.width().min(inner.width as usize) as u16),
         ])
         .split(editor_parts[0]);
@@ -2259,9 +2396,24 @@ fn draw_editor(app: &mut App, frame: &mut Frame, area: Rect) {
             .bg(Color::Yellow)
             .add_modifier(Modifier::BOLD)
     };
+    if let Some(preview_label) = preview_label {
+        let preview_active = app.tabs[app.active].markdown_preview;
+        let preview_style = if preview_active {
+            Style::default()
+                .fg(Color::Black)
+                .bg(Color::Cyan)
+                .add_modifier(Modifier::BOLD)
+        } else {
+            Style::default().fg(Color::Cyan)
+        };
+        frame.render_widget(
+            Paragraph::new(preview_label).style(preview_style),
+            header_parts[1],
+        );
+    }
     frame.render_widget(
         Paragraph::new(diff_label).style(diff_style),
-        header_parts[1],
+        header_parts[2],
     );
 
     if app.tabs.is_empty() {
@@ -2304,6 +2456,17 @@ fn draw_editor(app: &mut App, frame: &mut Frame, area: Rect) {
         .cloned()
         .unwrap_or_default();
     let editor = &mut app.tabs[app.active];
+    if editor.markdown_preview {
+        let source = editor.lines.join("\n");
+        let markdown = tui_markdown::from_str(&source);
+        frame.render_widget(
+            Paragraph::new(markdown)
+                .wrap(Wrap { trim: false })
+                .scroll((editor.preview_scroll_y, 0)),
+            text_area,
+        );
+        return;
+    }
     if let Some(protocol) = editor.visual_protocol.as_mut() {
         frame.render_stateful_widget(
             StatefulImage::new().resize(Resize::Fit(None)),
@@ -2319,6 +2482,15 @@ fn draw_editor(app: &mut App, frame: &mut Frame, area: Rect) {
     let number_width = editor.lines.len().to_string().len().max(3);
     let visible_height = text_area.height as usize;
     let visible_width = text_area.width.saturating_sub(number_width as u16 + 2) as usize;
+    let longest_line = editor
+        .lines
+        .iter()
+        .map(|line| line.chars().count())
+        .max()
+        .unwrap_or(0);
+    editor.scroll_x = editor
+        .scroll_x
+        .min(longest_line.saturating_add(1).saturating_sub(visible_width));
 
     if editor.row < editor.scroll_y {
         editor.scroll_y = editor.row;
@@ -2326,11 +2498,13 @@ fn draw_editor(app: &mut App, frame: &mut Frame, area: Rect) {
     if editor.row >= editor.scroll_y + visible_height {
         editor.scroll_y = editor.row + 1 - visible_height;
     }
-    if editor.col < editor.scroll_x {
-        editor.scroll_x = editor.col;
-    }
-    if editor.col >= editor.scroll_x + visible_width.max(1) {
-        editor.scroll_x = editor.col + 1 - visible_width.max(1);
+    if !editor.manual_scroll_x {
+        if editor.col < editor.scroll_x {
+            editor.scroll_x = editor.col;
+        }
+        if editor.col >= editor.scroll_x + visible_width.max(1) {
+            editor.scroll_x = editor.col + 1 - visible_width.max(1);
+        }
     }
 
     let syntax = syntax_set
@@ -2422,12 +2596,6 @@ fn draw_editor(app: &mut App, frame: &mut Frame, area: Rect) {
             &mut scrollbar,
         );
     }
-    let longest_line = editor
-        .lines
-        .iter()
-        .map(|line| line.chars().count())
-        .max()
-        .unwrap_or(0);
     if longest_line > visible_width {
         let mut scrollbar = ScrollbarState::new(longest_line)
             .position(editor.scroll_x)
@@ -2469,7 +2637,7 @@ fn draw_editor(app: &mut App, frame: &mut Frame, area: Rect) {
             .collect();
         let x = text_area.x + prefix.width() as u16 + before.width() as u16;
         let y = text_area.y + editor.row.saturating_sub(editor.scroll_y) as u16;
-        if x < text_area.right() && y < text_area.bottom() {
+        if editor.col >= editor.scroll_x && x < text_area.right() && y < text_area.bottom() {
             frame.set_cursor_position((x, y));
         }
     }
@@ -2607,7 +2775,11 @@ fn run() -> io::Result<()> {
                     }
                     Event::Paste(text) if app.focus == Focus::Editor => {
                         if let Some(editor) = app.tabs.get_mut(app.active) {
-                            editor.insert_text(&text);
+                            if editor.markdown_preview {
+                                app.message = "Switch to Markdown editing before pasting".into();
+                            } else {
+                                editor.insert_text(&text);
+                            }
                         }
                         needs_redraw = true;
                     }
@@ -2655,6 +2827,17 @@ fn main() {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use ratatui::backend::TestBackend;
+
+    fn buffer_text(terminal: &Terminal<TestBackend>) -> String {
+        terminal
+            .backend()
+            .buffer()
+            .content
+            .iter()
+            .map(|cell| cell.symbol())
+            .collect()
+    }
 
     #[test]
     fn project_paths_cannot_escape_root() {
@@ -2677,6 +2860,80 @@ mod tests {
                 < fuzzy_score("my/application/index.rs", "main").unwrap()
         );
         assert!(fuzzy_score("README.md", "xyz").is_none());
+    }
+
+    #[test]
+    fn markdown_preview_and_horizontal_scroll_are_buffer_native() {
+        let root = std::env::temp_dir().join(format!("tide-markdown-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&root);
+        fs::create_dir_all(&root).unwrap();
+        let path = root.join("README.md");
+        fs::write(&path, format!("# Preview\n\n{}", "wide ".repeat(40))).unwrap();
+        let mut editor = Editor::open(path).unwrap();
+        assert!(editor.is_markdown());
+        editor.markdown_preview = true;
+        assert!(tui_markdown::from_str(&editor.lines.join("\n")).height() > 0);
+        editor.scroll_horizontal(12);
+        assert_eq!(editor.scroll_x, 12);
+        assert!(editor.manual_scroll_x);
+        editor.scroll_horizontal(-4);
+        assert_eq!(editor.scroll_x, 8);
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn markdown_detection_is_case_insensitive() {
+        let root = std::env::temp_dir().join(format!("tide-markdown-case-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&root);
+        fs::create_dir_all(&root).unwrap();
+        let path = root.join("README.MD");
+        fs::write(&path, "# Preview\n").unwrap();
+        assert!(Editor::open(path).unwrap().is_markdown());
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn markdown_preview_renders_and_scroll_offsets_stay_in_viewport() {
+        let root = std::env::temp_dir().join(format!("tide-render-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&root);
+        fs::create_dir_all(&root).unwrap();
+        let markdown_path = root.join("README.md");
+        fs::write(
+            &markdown_path,
+            format!("# Preview title\n\n**bold text**\n\n{}", "wide ".repeat(80)),
+        )
+        .unwrap();
+        fs::write(root.join("a".repeat(80)), "wide explorer entry\n").unwrap();
+
+        let mut config = TideConfig::default();
+        config.lsp.disabled = true;
+        let picker = Picker::from_fontsize((8, 16));
+        let mut app = App::new(root.clone(), picker, config);
+        app.open_file(markdown_path);
+        handle_key(
+            &mut app,
+            KeyEvent::new(KeyCode::Char('p'), KeyModifiers::ALT),
+        );
+        assert!(app.tabs[app.active].markdown_preview);
+
+        let mut terminal = Terminal::new(TestBackend::new(100, 30)).unwrap();
+        terminal.draw(|frame| draw(&mut app, frame)).unwrap();
+        let preview = buffer_text(&terminal);
+        assert!(preview.contains("MARKDOWN PREVIEW"));
+        assert!(preview.contains("Preview title"));
+
+        handle_key(
+            &mut app,
+            KeyEvent::new(KeyCode::Char('p'), KeyModifiers::ALT),
+        );
+        app.tabs[app.active].scroll_x = usize::MAX;
+        app.tabs[app.active].manual_scroll_x = true;
+        app.explorer_scroll_x = usize::MAX;
+        terminal.draw(|frame| draw(&mut app, frame)).unwrap();
+        assert!(app.tabs[app.active].scroll_x < usize::MAX);
+        assert!(app.explorer_scroll_x < usize::MAX);
+
+        fs::remove_dir_all(root).unwrap();
     }
 
     #[test]

@@ -320,6 +320,7 @@ Detailed feature documentation is available in the
 | <kbd>Ctrl</kbd>+<kbd>E</kbd> | Switch Explorer / Editor focus |
 | <kbd>Ctrl</kbd>+<kbd>P</kbd> | Quick Open; start with `%` for content search |
 | <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>D</kbd> | Open a live Hunk diff review |
+| <kbd>Alt</kbd>+<kbd>P</kbd> | Toggle Markdown Preview / Edit |
 | <kbd>Ctrl</kbd>+<kbd>S</kbd> | Save |
 | <kbd>Ctrl</kbd>+<kbd>Q</kbd> | Quit safely |
 | <kbd>Ctrl</kbd>+<kbd>W</kbd> | Close active file |
@@ -336,12 +337,12 @@ Detailed feature documentation is available in the
 
 | Context | Keys |
 |---|---|
-| Editor | Arrows, Home/End, Page Up/Down, `Ctrl+Z`, `Ctrl+Y`, Tab |
+| Editor | Arrows, Home/End, Page Up/Down, `Ctrl+Z`, `Ctrl+Y`, Tab; `Shift+Left/Right` scrolls horizontally |
 | Explorer | Up/Down or `j/k`, Enter/Right to open, Left/Backspace to collapse |
 | Explorer | `Ctrl+H` toggles hidden files; `[` and `]` scroll deep trees |
 | Explorer | `n` new file, `N` new directory, `r` rename, `m` move, `d` delete |
 | Quick Open | Up/Down selects, Enter opens, Escape closes |
-| Mouse | Select text, scroll panes, open files, switch and close tabs, open Δ DIFF |
+| Mouse | Select text, scroll vertically or horizontally, open files, switch and close tabs, open Preview or Δ DIFF |
 
 ## Development
 

@@ -13,6 +13,7 @@ project tools. For installation and command-line usage, return to the
 - [Live file synchronization](#live-file-synchronization)
 - [Git integration](#git-integration)
 - [Live diff review with Hunk](#live-diff-review-with-hunk)
+- [Markdown Preview](#markdown-preview)
 - [Media and binary previews](#media-and-binary-previews)
 - [LSP diagnostics and completion](#lsp-diagnostics-and-completion)
 - [File management](#file-management)
@@ -27,7 +28,9 @@ open files with a click. The tree refreshes without restarting TIDE.
 
 Open multiple tabs with language-aware syntax highlighting, mouse selection,
 undo and redo, familiar navigation keys, safe saving, and a read-only hex view
-for unknown binary formats. Files up to 50 MiB can be opened.
+for unknown binary formats. Files up to 50 MiB can be opened. Horizontal wheel
+events, Shift+wheel, and Shift+Left/Right move the viewport without snapping
+back to the cursor; the scrollbar tracks the complete document width.
 
 ## Agent panes
 
@@ -114,6 +117,15 @@ brew install hunk
 Agents can participate in a live review through Hunk's own skill and session
 controls. Run `hunk skill path` and ask the agent to load that skill for review
 annotations and change explanations.
+
+## Markdown Preview
+
+Opening `.md`, `.markdown`, or `.mdown` files adds a **◉ PREVIEW** button beside
+**Δ DIFF** in the editor header. Click it or press
+<kbd>Alt</kbd>+<kbd>P</kbd> to switch between the editable source
+and a styled, wrapped terminal preview. The preview renders unsaved buffer
+changes immediately and supports wheel, arrow, Page Up/Down, Home, and `j/k`
+scrolling. Press Escape or click **✎ EDIT** to return to source editing.
 
 ## Media and binary previews
 

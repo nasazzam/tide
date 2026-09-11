@@ -2,7 +2,7 @@
 # TIDE workspace launcher for Linux, macOS, BSD, and Windows through WSL.
 set -euo pipefail
 
-readonly TIDE_VERSION="0.4.4"
+readonly TIDE_VERSION="0.5.0"
 
 usage() {
   cat <<'EOF'

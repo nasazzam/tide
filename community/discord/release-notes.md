@@ -1,18 +1,15 @@
-# Copy-ready v0.4.4 release post
+# Copy-ready v0.5.0 release post
 
-> **TIDE v0.4.4 — safer shortcuts and precise focus**
+> **TIDE v0.5.0 — Markdown Preview and dependable horizontal scrolling**
 >
-> Workspace interaction has been refined:
+> Editing and navigation are more comfortable in wide documents:
 >
-> • clicking Explorer, Editor, Agent, or Terminal focuses that exact area
-> • restoring a hidden pane automatically focuses it
-> • Ctrl/Alt shortcuts no longer trigger Explorer file actions accidentally
-> • the project root can never be recursively deleted
-> • remaining panes continue to resize automatically when views are hidden
+> • Markdown files now have an in-editor styled Preview/Edit toggle
+> • previews render unsaved buffer changes and wrap to the available width
+> • `Alt+P` switches between Markdown source and preview
+> • horizontal wheel, Shift+wheel, and Shift+Left/Right scroll wide content
+> • Editor and Explorer horizontal offsets remain independent and in bounds
 >
-> The home-row controls remain `Ctrl+Shift+A/S/D/F/G`. Foot users now have a
-> documented CSI-u compatibility setup when their terminal collapses Ctrl+Shift.
->
-> Release: <https://github.com/nasazzam/tide/releases/tag/v0.4.4>
+> Release: <https://github.com/nasazzam/tide/releases/tag/v0.5.0>
 
 Attach: `assets/tide-workspace.png`

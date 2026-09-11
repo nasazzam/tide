@@ -5,6 +5,18 @@ All notable changes to TIDE will be documented here. This project follows
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-09-11
+
+### Added
+
+- In-editor Markdown Preview with a contextual header button, styled rendering,
+  live unsaved content, wrapping, and keyboard or mouse scrolling.
+
+### Fixed
+
+- Horizontal scrolling in Editor and Explorer now remains independent of the
+  cursor, responds to horizontal and Shift+wheel input, and stays in bounds.
+
 ## [0.4.4] - 2026-09-10
 
 ### Fixed
@@ -69,7 +81,8 @@ All notable changes to TIDE will be documented here. This project follows
 - Linux, macOS, Windows, WSL, Arch, Omarchy, Homebrew, and Winget packaging.
 - Checksum-verifying release installer and cross-platform CI.
 
-[Unreleased]: https://github.com/nasazzam/tide/compare/v0.4.4...HEAD
+[Unreleased]: https://github.com/nasazzam/tide/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/nasazzam/tide/releases/tag/v0.5.0
 [0.4.4]: https://github.com/nasazzam/tide/releases/tag/v0.4.4
 [0.4.3]: https://github.com/nasazzam/tide/releases/tag/v0.4.3
 [0.4.2]: https://github.com/nasazzam/tide/releases/tag/v0.4.2
