@@ -2,7 +2,7 @@
 # TIDE workspace launcher for Linux, macOS, BSD, and Windows through WSL.
 set -euo pipefail
 
-readonly TIDE_VERSION="0.5.2"
+readonly TIDE_VERSION="0.5.3"
 
 usage() {
   cat <<'EOF'
@@ -181,8 +181,27 @@ toggle_workspace_pane() {
   fi
 }
 
+send_editor_key() {
+  local source=${1:-${TMUX_PANE:-}} key=${2:-} layout editor_pane
+  command -v tmux >/dev/null 2>&1 || fail "tmux is required"
+  [[ -n $source ]] || fail "editor action must run inside tmux"
+  case "$key" in C-S-a|C-S-d) ;; *) fail "unsupported editor action: $key" ;; esac
+
+  layout=$(tmux display-message -p -t "$source" '#{@tide_layout}')
+  [[ -n $layout ]] || fail "this is not a TIDE workspace window"
+  editor_pane=$(tmux display-message -p -t "$source" '#{@tide_editor_pane}')
+  if ! tmux display-message -p -t "$editor_pane" '#{pane_id}' >/dev/null 2>&1; then
+    tmux display-message -t "$source" "TIDE editor pane is not running"
+    return 0
+  fi
+  tmux send-keys -t "$editor_pane" "$key"
+}
+
 if [[ ${1:-} == --_toggle-pane ]]; then
   toggle_workspace_pane "${2:-}" "${3:-}"
+  exit 0
+elif [[ ${1:-} == --_send-editor-key ]]; then
+  send_editor_key "${2:-}" "${3:-}"
   exit 0
 fi
 
@@ -423,11 +442,11 @@ tmux set-option -w -t "$workspace" @tide_terminal_visible 1
 
 # Home-row bindings only act in a TIDE window; elsewhere tmux passes them through.
 tmux bind-key -n C-S-a if-shell -F '#{!=:#{@tide_editor_pane},}' \
-  'send-keys -t "#{@tide_editor_pane}" C-S-a' 'send-keys C-S-a'
+  'run-shell "tide --_send-editor-key #{pane_id} C-S-a"' 'send-keys C-S-a'
 tmux bind-key -n C-S-s if-shell -F '#{!=:#{@tide_editor_pane},}' \
   'run-shell "tide --_toggle-pane editor #{pane_id}"' 'send-keys C-S-s'
 tmux bind-key -n C-S-d if-shell -F '#{!=:#{@tide_editor_pane},}' \
-  'send-keys -t "#{@tide_editor_pane}" C-S-d' 'send-keys C-S-d'
+  'run-shell "tide --_send-editor-key #{pane_id} C-S-d"' 'send-keys C-S-d'
 tmux bind-key -n C-S-f if-shell -F '#{!=:#{@tide_agent_pane},}' \
   'run-shell "tide --_toggle-pane agent #{pane_id}"' 'send-keys C-S-f'
 tmux bind-key -n C-S-g if-shell -F '#{!=:#{@tide_terminal_pane},}' \
