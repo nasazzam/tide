@@ -10,7 +10,7 @@ param(
 $ErrorActionPreference = 'Stop'
 
 if ($Version) {
-    Write-Output 'tide 0.5.1'
+    Write-Output 'tide 0.5.2'
     exit 0
 }
 

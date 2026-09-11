@@ -37,7 +37,8 @@ grep -F 'pi\ -c' "$TIDE_TEST_LOG" >/dev/null
 grep -F 'claude\ --continue' "$TIDE_TEST_LOG" >/dev/null
 grep -F '@tide_role editor' "$TIDE_TEST_LOG" >/dev/null
 grep -F 'set-option -t ' "$TIDE_TEST_LOG" | grep -F ' mouse on' >/dev/null
-grep -F 'send-keys' "$TIDE_TEST_LOG" | grep -F 'clear' | grep -F 'exec' | grep -F 'tide-editor' >/dev/null
+editor_launch=$(grep -F 'send-keys' "$TIDE_TEST_LOG" | grep -F 'clear' | grep -F 'tide-editor')
+[[ $editor_launch != *exec* ]] || { echo "launcher replaced the interactive shell required by the editor" >&2; exit 1; }
 if grep -F 'send-keys' "$TIDE_TEST_LOG" | grep -F -- '-l env' | grep -F 'tide-editor' >/dev/null; then
   echo "launcher typed the uncleared editor command into its pane" >&2
   exit 1
@@ -62,6 +63,6 @@ grep -F 'split-window -v -l 20%' "$TIDE_TEST_LOG" >/dev/null
 grep -F 'split-window -h -b -l 40%' "$TIDE_TEST_LOG" >/dev/null
 "$root/bin/tide" --list-sessions | grep -F 'tide-restored' >/dev/null
 
-"$root/bin/tide" --version | grep -F 'tide 0.5.1' >/dev/null
+"$root/bin/tide" --version | grep -F 'tide 0.5.2' >/dev/null
 "$root/bin/tide" --help | grep -F 'agent1 [args...] :: agent2' >/dev/null
 printf 'launcher tests passed\n'

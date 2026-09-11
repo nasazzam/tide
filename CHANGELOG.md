@@ -5,6 +5,12 @@ All notable changes to TIDE will be documented here. This project follows
 
 ## [Unreleased]
 
+## [0.5.2] - 2026-09-11
+
+### Fixed
+
+- Keep the editor under its interactive shell after clearing the launch line; replacing that shell made the editor exit immediately and left pane toggles with stale pane IDs.
+
 ## [0.5.1] - 2026-09-11
 
 ### Fixed
@@ -88,7 +94,8 @@ All notable changes to TIDE will be documented here. This project follows
 - Linux, macOS, Windows, WSL, Arch, Omarchy, Homebrew, and Winget packaging.
 - Checksum-verifying release installer and cross-platform CI.
 
-[Unreleased]: https://github.com/nasazzam/tide/compare/v0.5.1...HEAD
+[Unreleased]: https://github.com/nasazzam/tide/compare/v0.5.2...HEAD
+[0.5.2]: https://github.com/nasazzam/tide/releases/tag/v0.5.2
 [0.5.1]: https://github.com/nasazzam/tide/releases/tag/v0.5.1
 [0.5.0]: https://github.com/nasazzam/tide/releases/tag/v0.5.0
 [0.4.4]: https://github.com/nasazzam/tide/releases/tag/v0.4.4
