@@ -1,0 +1,17 @@
+PackageIdentifier: TIDE.TerminalIDE
+PackageVersion: 0.5.3
+PackageLocale: en-US
+Publisher: nasazzam
+PackageName: TIDE
+PackageUrl: https://github.com/nasazzam/tide
+License: MIT
+LicenseUrl: https://github.com/nasazzam/tide/blob/main/LICENSE
+ShortDescription: A focused terminal IDE for code, shells, and AI agents
+Description: TIDE provides a native terminal editor on Windows and a complete editor, shell, and coding-agent workspace through WSL.
+Tags:
+  - editor
+  - ide
+  - terminal
+  - tui
+ManifestType: defaultLocale
+ManifestVersion: 1.9.0

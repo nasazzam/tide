@@ -1,16 +1,16 @@
 class Tide < Formula
   desc "Focused terminal IDE for code, shells, and AI agents"
   homepage "https://github.com/nasazzam/tide"
-  version "0.5.2"
+  version "0.5.3"
   license "MIT"
 
   on_macos do
     if Hardware::CPU.arm?
-      url "https://github.com/nasazzam/tide/releases/download/v0.5.2/tide-v0.5.2-aarch64-apple-darwin.tar.gz"
-      sha256 "5f3881f4493c32db7a2ef09cf128a13d63798f31cc06be6453a7d2e5c5858ff3"
+      url "https://github.com/nasazzam/tide/releases/download/v0.5.3/tide-v0.5.3-aarch64-apple-darwin.tar.gz"
+      sha256 "8e4e77df2d599bfebaa6e665db588d1902a9f3f803af9b3685e282df74f64c63"
     else
-      url "https://github.com/nasazzam/tide/releases/download/v0.5.2/tide-v0.5.2-x86_64-apple-darwin.tar.gz"
-      sha256 "ef03272e4be61ca4397ccd9e3f6b110b166c0fc4a6c7824f3d6b389146477435"
+      url "https://github.com/nasazzam/tide/releases/download/v0.5.3/tide-v0.5.3-x86_64-apple-darwin.tar.gz"
+      sha256 "df4230393d2c0e4823755ec6fba3ef9b60be9b8753682a9c4dcfca39d0df6cda"
     end
   end
 
@@ -21,6 +21,6 @@ class Tide < Formula
   end
 
   test do
-    assert_match "tide 0.5.2", shell_output("#{bin}/tide --version")
+    assert_match "tide 0.5.3", shell_output("#{bin}/tide --version")
   end
 end
