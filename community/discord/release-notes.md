@@ -1,19 +1,18 @@
-# Copy-ready v0.4.3 release post
+# Copy-ready v0.4.4 release post
 
-> **TIDE v0.4.3 — adaptive pane visibility**
+> **TIDE v0.4.4 — safer shortcuts and precise focus**
 >
-> Workspace controls now switch each view fully on or off:
+> Workspace interaction has been refined:
 >
-> • `Ctrl+Shift+A` — show or hide Explorer
-> • `Ctrl+Shift+S` — show or hide Editor
-> • `Ctrl+Shift+D` — open live Hunk Diff
-> • `Ctrl+Shift+F` — show or hide all Agent panes
-> • `Ctrl+Shift+G` — show or hide Terminal
+> • clicking Explorer, Editor, Agent, or Terminal focuses that exact area
+> • restoring a hidden pane automatically focuses it
+> • Ctrl/Alt shortcuts no longer trigger Explorer file actions accidentally
+> • the project root can never be recursively deleted
+> • remaining panes continue to resize automatically when views are hidden
 >
-> Remaining panes automatically expand into all available space. Hidden panes
-> keep their processes running and return in the configured workspace layout,
-> so agent sessions and shell state are preserved.
+> The home-row controls remain `Ctrl+Shift+A/S/D/F/G`. Foot users now have a
+> documented CSI-u compatibility setup when their terminal collapses Ctrl+Shift.
 >
-> Release: <https://github.com/nasazzam/tide/releases/tag/v0.4.3>
+> Release: <https://github.com/nasazzam/tide/releases/tag/v0.4.4>
 
 Attach: `assets/tide-workspace.png`

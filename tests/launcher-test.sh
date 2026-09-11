@@ -36,6 +36,7 @@ export TIDE_TEST_LOG="$tmp/tmux.log"
 grep -F 'pi\ -c' "$TIDE_TEST_LOG" >/dev/null
 grep -F 'claude\ --continue' "$TIDE_TEST_LOG" >/dev/null
 grep -F '@tide_role editor' "$TIDE_TEST_LOG" >/dev/null
+grep -F 'set-option -t ' "$TIDE_TEST_LOG" | grep -F ' mouse on' >/dev/null
 grep -F 'bind-key -n C-S-a' "$TIDE_TEST_LOG" >/dev/null
 grep -F 'bind-key -n C-S-d' "$TIDE_TEST_LOG" >/dev/null
 grep -F 'bind-key -n C-S-g' "$TIDE_TEST_LOG" >/dev/null
@@ -56,6 +57,6 @@ grep -F 'split-window -v -l 20%' "$TIDE_TEST_LOG" >/dev/null
 grep -F 'split-window -h -b -l 40%' "$TIDE_TEST_LOG" >/dev/null
 "$root/bin/tide" --list-sessions | grep -F 'tide-restored' >/dev/null
 
-"$root/bin/tide" --version | grep -F 'tide 0.4.3' >/dev/null
+"$root/bin/tide" --version | grep -F 'tide 0.4.4' >/dev/null
 "$root/bin/tide" --help | grep -F 'agent1 [args...] :: agent2' >/dev/null
 printf 'launcher tests passed\n'

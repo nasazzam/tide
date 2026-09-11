@@ -1136,6 +1136,9 @@ impl App {
                 let target = prompt
                     .target
                     .ok_or_else(|| io::Error::other("nothing selected"))?;
+                if target == self.root {
+                    return Err(io::Error::other("the project root cannot be deleted"));
+                }
                 if value != "delete" {
                     return Err(io::Error::other(
                         "deletion cancelled; type delete to confirm",
@@ -1565,7 +1568,8 @@ fn handle_key(app: &mut App, key: KeyEvent) {
                     app.focus = Focus::Editor;
                 }
                 app.message = if app.explorer_visible {
-                    "Explorer shown"
+                    app.focus = Focus::Explorer;
+                    "Explorer shown and focused"
                 } else {
                     "Explorer hidden · Ctrl+Shift+A restores it"
                 }
@@ -1576,8 +1580,9 @@ fn handle_key(app: &mut App, key: KeyEvent) {
                 app.open_hunk();
                 return;
             }
-            KeyCode::Char('s' | 'S' | 'f' | 'F' | 'g' | 'G') if env::var_os("TMUX").is_none() => {
-                app.message = "Editor, Agent, and Terminal focus require the tmux workspace".into();
+            KeyCode::Char('s' | 'S' | 'f' | 'F' | 'g' | 'G') => {
+                app.message =
+                    "Editor, Agent, and Terminal visibility require a TIDE workspace".into();
                 return;
             }
             _ => {}
@@ -1659,6 +1664,11 @@ fn handle_key(app: &mut App, key: KeyEvent) {
         app.refresh_git_status();
         app.refresh_diff_summary();
         app.message = "Explorer, Git status, and diff summary refreshed".into();
+        return;
+    }
+    // Unhandled command chords must never fall through to single-letter Explorer
+    // actions such as new, rename, move, or delete.
+    if ctrl || alt {
         return;
     }
     match app.focus {
@@ -1810,6 +1820,9 @@ fn handle_mouse(app: &mut App, mouse: MouseEvent, width: u16, height: u16) {
         main[1].height.saturating_sub(2),
     );
     let diff_width = app.diff_summary.label().width().min(inner.width as usize) as u16;
+    if mouse.kind == MouseEventKind::Down(MouseButton::Left) {
+        app.focus = Focus::Editor;
+    }
     if mouse.kind == MouseEventKind::Down(MouseButton::Left)
         && mouse.row == inner.y
         && mouse.column >= inner.right().saturating_sub(diff_width)
@@ -2664,5 +2677,33 @@ mod tests {
                 < fuzzy_score("my/application/index.rs", "main").unwrap()
         );
         assert!(fuzzy_score("README.md", "xyz").is_none());
+    }
+
+    #[test]
+    fn command_modifiers_do_not_trigger_explorer_file_actions() {
+        let root = std::env::temp_dir().join(format!("tide-keys-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&root);
+        fs::create_dir_all(&root).unwrap();
+        let mut config = TideConfig::default();
+        config.lsp.disabled = true;
+        let picker = Picker::from_fontsize((8, 16));
+        let mut app = App::new(root.clone(), picker, config);
+
+        handle_key(
+            &mut app,
+            KeyEvent::new(KeyCode::Char('d'), KeyModifiers::CONTROL),
+        );
+        assert!(app.prompt.is_none());
+
+        app.selected = Some(root.clone());
+        handle_key(
+            &mut app,
+            KeyEvent::new(KeyCode::Char('d'), KeyModifiers::NONE),
+        );
+        app.prompt.as_mut().unwrap().input = "delete".into();
+        app.apply_file_action();
+        assert!(root.exists());
+        assert!(app.message.contains("project root cannot be deleted"));
+        fs::remove_dir_all(root).unwrap();
     }
 }

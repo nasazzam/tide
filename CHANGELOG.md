@@ -5,6 +5,15 @@ All notable changes to TIDE will be documented here. This project follows
 
 ## [Unreleased]
 
+## [0.4.4] - 2026-09-10
+
+### Fixed
+
+- Clicking a workspace pane or restoring a hidden pane now focuses that area.
+- Modified shortcuts can no longer fall through to Explorer actions such as
+  create, rename, move, or delete.
+- The project root is explicitly protected from recursive deletion.
+
 ## [0.4.3] - 2026-09-10
 
 ### Changed
@@ -60,7 +69,8 @@ All notable changes to TIDE will be documented here. This project follows
 - Linux, macOS, Windows, WSL, Arch, Omarchy, Homebrew, and Winget packaging.
 - Checksum-verifying release installer and cross-platform CI.
 
-[Unreleased]: https://github.com/nasazzam/tide/compare/v0.4.3...HEAD
+[Unreleased]: https://github.com/nasazzam/tide/compare/v0.4.4...HEAD
+[0.4.4]: https://github.com/nasazzam/tide/releases/tag/v0.4.4
 [0.4.3]: https://github.com/nasazzam/tide/releases/tag/v0.4.3
 [0.4.2]: https://github.com/nasazzam/tide/releases/tag/v0.4.2
 [0.4.1]: https://github.com/nasazzam/tide/releases/tag/v0.4.1

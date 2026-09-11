@@ -54,7 +54,20 @@ and the configured layout and sizes are rebuilt when a pane returns. TIDE keeps
 at least one of Editor, Agent, or Terminal visible. The bindings are conditional:
 outside a TIDE workspace window, tmux passes these chords through normally. A
 terminal with extended-key support is required to distinguish Ctrl+Shift from
-Ctrl; TIDE enables tmux's extended-key handling.
+Ctrl; TIDE enables tmux's extended-key handling. Clicking Explorer, Editor,
+Agent, or Terminal focuses that exact area; showing a hidden pane also focuses
+it automatically.
+
+If Foot collapses Ctrl+Shift into Ctrl, add explicit CSI-u mappings under
+`[text-bindings]` in `~/.config/foot/foot.ini` and open a new terminal:
+
+```ini
+\x1b[97;6u=Control+Shift+a
+\x1b[115;6u=Control+Shift+s
+\x1b[100;6u=Control+Shift+d
+\x1b[102;6u=Control+Shift+f
+\x1b[103;6u=Control+Shift+g
+```
 
 ## Quick Open and project search
 

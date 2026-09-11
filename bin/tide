@@ -2,7 +2,7 @@
 # TIDE workspace launcher for Linux, macOS, BSD, and Windows through WSL.
 set -euo pipefail
 
-readonly TIDE_VERSION="0.4.3"
+readonly TIDE_VERSION="0.4.4"
 
 usage() {
   cat <<'EOF'
@@ -94,7 +94,7 @@ reflow_workspace() {
 
 toggle_workspace_pane() {
   local role=${1:-} source=${2:-${TMUX_PANE:-}} option panes_value visible
-  local workspace layout shell_size agent_size editor_pane terminal_pane anchor pane
+  local workspace layout shell_size agent_size editor_pane terminal_pane anchor pane focus_pane
   local editor_visible agent_visible terminal_visible
   local -a panes
   command -v tmux >/dev/null 2>&1 || fail "tmux is required"
@@ -154,16 +154,19 @@ toggle_workspace_pane() {
       editor)
         tmux join-pane -d -s "$editor_pane" -t "$anchor"
         editor_visible=1
+        focus_pane=$editor_pane
         ;;
       agent)
         for pane in "${panes[@]}"; do
           tmux join-pane -d -s "$pane" -t "$anchor"
         done
         agent_visible=1
+        focus_pane=${panes[0]}
         ;;
       terminal)
         tmux join-pane -d -s "$terminal_pane" -t "$anchor"
         terminal_visible=1
+        focus_pane=$terminal_pane
         ;;
     esac
     tmux set-option -w -t "$workspace" "$option" 1
@@ -173,6 +176,9 @@ toggle_workspace_pane() {
     "$editor_pane" "$terminal_pane" "$panes_value" \
     "$editor_visible" "$agent_visible" "$terminal_visible"
   tmux select-window -t "$workspace"
+  if [[ $visible == 0 ]]; then
+    tmux select-pane -t "$focus_pane"
+  fi
 }
 
 if [[ ${1:-} == --_toggle-pane ]]; then
@@ -364,6 +370,9 @@ else
   tmux set-option -t "$session_name" @tide_project "$project"
   tmux rename-window -t "$workspace" "$(basename "$project")"
 fi
+
+# Mouse selection makes a click focus Explorer, Editor, Agent, or Terminal.
+tmux set-option -t "$workspace" mouse on
 
 # Build the configured workspace while retaining the original pane for the editor.
 shell_pane=$(tmux split-window -v -l "${shell_size}%" -t "$workspace" -c "$project" -P -F '#{pane_id}')
