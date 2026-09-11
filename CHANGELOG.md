@@ -5,6 +5,12 @@ All notable changes to TIDE will be documented here. This project follows
 
 ## [Unreleased]
 
+## [0.5.4] - 2026-09-11
+
+### Fixed
+
+- Launch the editor without invoking an external `env` executable, preventing a user-local `env` shim from silently swallowing the editor command and leaving a blank shell pane.
+
 ## [0.5.3] - 2026-09-11
 
 ### Fixed
@@ -100,7 +106,8 @@ All notable changes to TIDE will be documented here. This project follows
 - Linux, macOS, Windows, WSL, Arch, Omarchy, Homebrew, and Winget packaging.
 - Checksum-verifying release installer and cross-platform CI.
 
-[Unreleased]: https://github.com/nasazzam/tide/compare/v0.5.3...HEAD
+[Unreleased]: https://github.com/nasazzam/tide/compare/v0.5.4...HEAD
+[0.5.4]: https://github.com/nasazzam/tide/releases/tag/v0.5.4
 [0.5.3]: https://github.com/nasazzam/tide/releases/tag/v0.5.3
 [0.5.2]: https://github.com/nasazzam/tide/releases/tag/v0.5.2
 [0.5.1]: https://github.com/nasazzam/tide/releases/tag/v0.5.1
