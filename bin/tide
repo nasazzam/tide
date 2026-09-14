@@ -301,8 +301,6 @@ while (( $# )); do
 done
 
 command -v tmux >/dev/null 2>&1 || fail "tmux is required (on Windows, run TIDE inside WSL)"
-# Distinguish Ctrl+Shift home-row chords from their traditional Ctrl-only bytes.
-tmux set-option -s extended-keys on
 if (( list_sessions )); then
   tmux list-sessions -F '#{session_name}\t#{@tide_project}\t#{session_attached}' 2>/dev/null \
     | awk -F '\t' '$1 ~ /^tide-/ || $2 != "" { printf "%-32s  %s%s\n", $1, ($2 == "" ? "unknown project" : $2), ($3 > 0 ? "  [attached]" : "") }'
@@ -389,6 +387,10 @@ else
   tmux set-option -t "$session_name" @tide_project "$project"
   tmux rename-window -t "$workspace" "$(basename "$project")"
 fi
+
+# The server exists now. Distinguish Ctrl+Shift home-row chords from their
+# traditional Ctrl-only bytes without failing on a fresh tmux installation.
+tmux set-option -s extended-keys on
 
 # Mouse selection makes a click focus Explorer, Editor, Agent, or Terminal.
 tmux set-option -t "$workspace" mouse on

@@ -18,7 +18,16 @@ if [[ ${1:-} == split-window || ${1:-} == join-pane ]]; then
 fi
 case "${1:-}" in
   has-session) exit 1 ;;
-  new-session) printf '%%root-pane\n' ;;
+  new-session)
+    : >"$TIDE_TEST_SERVER"
+    printf '%%root-pane\n'
+    ;;
+  set-option)
+    if [[ ${2:-} == -s && ! -e $TIDE_TEST_SERVER ]]; then
+      echo "error connecting to tmux server" >&2
+      exit 1
+    fi
+    ;;
   split-window) printf '%%test-pane\n' ;;
   display-message)
     case "${*: -1}" in
@@ -37,6 +46,7 @@ chmod +x "$tmp/tmux" "$tmp/tide-editor"
 
 export PATH="$tmp:$PATH"
 export TIDE_TEST_LOG="$tmp/tmux.log"
+export TIDE_TEST_SERVER="$tmp/tmux-server"
 "$root/bin/tide" --no-attach --image-protocol halfblocks pi -c :: claude --continue >/dev/null
 
 grep -F 'pi\ -c' "$TIDE_TEST_LOG" >/dev/null
